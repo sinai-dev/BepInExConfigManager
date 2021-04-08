@@ -59,3 +59,8 @@ public class MyMod : MelonLoader.MelonMod
     }
 }
 ```
+
+## Todo
+
+* Add support for `AcceptableValueList`
+* Handle "Advanced" settings and other attributes / tags
