@@ -81,23 +81,20 @@ namespace ConfigManager.Input
 
         public static void SetEventSystem()
         {
-            // temp disabled for new InputSystem
             if (InputManager.CurrentType == InputType.InputSystem)
                 return;
 
-            // Disable current event system object
-            if (m_lastEventSystem || EventSystem.current)
+            if (EventSystem.current && EventSystem.current != UIManager.EventSys)
             {
-                if (!m_lastEventSystem)
-                    m_lastEventSystem = EventSystem.current;
-
+                m_lastEventSystem = EventSystem.current;
                 m_lastEventSystem.enabled = false;
+                m_lastInputModule = m_lastEventSystem?.currentInputModule;
             }
 
             // Set to our current system
             m_settingEventSystem = true;
-            EventSystem.current = UIManager.EventSys;
             UIManager.EventSys.enabled = true;
+            EventSystem.current = UIManager.EventSys;
             InputManager.ActivateUIModule();
             m_settingEventSystem = false;
         }
@@ -107,7 +104,7 @@ namespace ConfigManager.Input
             if (InputManager.CurrentType == InputType.InputSystem)
                 return;
 
-            if (m_lastEventSystem)
+            if (m_lastEventSystem && m_lastEventSystem.gameObject.activeSelf)
             {
                 m_lastEventSystem.enabled = true;
 
@@ -167,13 +164,16 @@ namespace ConfigManager.Input
 
         public static void Prefix_EventSystem_set_current(ref EventSystem value)
         {
-            if (!m_settingEventSystem)
+            if (!m_settingEventSystem && value != UIManager.EventSys)
             {
                 m_lastEventSystem = value;
                 m_lastInputModule = value?.currentInputModule;
 
                 if (ShouldActuallyUnlock)
+                {
                     value = UIManager.EventSys;
+                    value.enabled = true;
+                }
             }
         }
 

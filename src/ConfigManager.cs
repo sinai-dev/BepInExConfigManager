@@ -22,7 +22,7 @@ namespace ConfigManager
         public const string GUID = "com.sinai.bepinexconfigmanager.il2cpp";
         public const string NAME = "BepInExConfigManager.Il2Cpp";
         public const string AUTHOR = "Sinai";
-        public const string VERSION = "0.1.1";
+        public const string VERSION = "0.1.2";
 
         public static ConfigManager Instance { get; private set; }
         public static HarmonyLib.Harmony Harmony { get; private set; }
