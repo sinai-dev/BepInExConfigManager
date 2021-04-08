@@ -105,19 +105,19 @@ namespace ConfigManager.UI
             IValue.OnValueUpdated();
 
             OnSaveOrUndo();
-            ConfigurationEditor.OnEntryUndo(this);
         }
 
         public void RevertToDefault()
         {
             RefConfig.BoxedValue = RefConfig.DefaultValue;
             UpdateValue();
-            ConfigurationEditor.OnEntryUndo(this);
+            OnSaveOrUndo();
         }
 
         internal void OnSaveOrUndo()
         {
             m_undoButton.SetActive(false);
+            ConfigurationEditor.OnEntrySaveOrUndo(this);
         }
 
         public void Enable()

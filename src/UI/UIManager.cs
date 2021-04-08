@@ -47,6 +47,7 @@ namespace ConfigManager.UI
             Canvas.ForceUpdateCanvases();
 
             ShowMenu = false;
+            CanvasRoot.GetComponent<Canvas>().scaleFactor = ConfigManager.UI_Scale.Value;
         }
 
         internal static void Update()
@@ -81,7 +82,6 @@ namespace ConfigManager.UI
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
             canvas.referencePixelsPerUnit = 100;
             canvas.sortingOrder = 999;
-            canvas.scaleFactor = ConfigManager.UI_Scale.Value;
 
             CanvasScaler scaler = CanvasRoot.AddComponent<CanvasScaler>();
             scaler.referenceResolution = new Vector2(1920, 1080);

@@ -82,7 +82,7 @@ namespace ConfigManager.UI
                 saveButton.interactable = true;
         }
 
-        public static void OnEntryUndo(CachedConfigEntry entry)
+        public static void OnEntrySaveOrUndo(CachedConfigEntry entry)
         {
             if (editingEntries.Contains(entry))
                 editingEntries.Remove(entry);
