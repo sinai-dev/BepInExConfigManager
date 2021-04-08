@@ -28,7 +28,7 @@ The UI supports the following types by default:
 * Multi-toggle: `enum` with `[Flags]` attribute
 * Color picker: `UnityEngine.Color`
 * Struct editor: `UnityEngine.Vector3`, `UnityEngine.Quaternion`, etc
-* Toml input: Anything else with a corresponding Mapper registered to `BepInEx.Configuration.TomlTypeConverter`.
+* Toml input: Anything else with a corresponding TypeConverter registered to `BepInEx.Configuration.TomlTypeConverter`.
 
 To make a slider, use a number type and provide an `AcceptableValueRange` when creating the entry. For example:
 ```csharp
