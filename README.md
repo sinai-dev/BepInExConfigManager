@@ -36,7 +36,7 @@ Config.Bind(new ConfigDefinition("Section", "Int slider"), 32, new ConfigDescrip
         new AcceptableValueRange<int>(0, 100))); 
 ```
 
-You can override the Toml input for a Type by registering your own InteractiveValue for it. Refer to [existing classes](https://github.com/sinai-dev/MelonPreferencesManager/tree/main/src/UI/InteractiveValues) for more concrete examples.
+You can override the Toml input for a Type by registering your own InteractiveValue for it. Refer to [existing classes](https://github.com/sinai-dev/BepInExConfigManager/tree/main/src/UI/InteractiveValues) for more concrete examples.
 ```csharp
 // Define an InteractiveValue class to handle 'Something'
 public class InteractiveSomething : InteractiveValue
@@ -50,10 +50,10 @@ public class InteractiveSomething : InteractiveValue
     // override other methods as necessary
 }
 
-// Register your class in your MelonMod.OnApplicationStart method
-public class MyMod : MelonLoader.MelonMod
+// Register your class in your BasePlugin.Load method:
+public class MyMod : BepInEx.IL2CPP.BasePlugin
 {
-    public override void OnApplicationStart()
+    public override void Load()
     {
         InteractiveValue.RegisterIValueType<InteractiveSomething>();
     }
