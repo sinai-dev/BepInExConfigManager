@@ -192,7 +192,7 @@ namespace ConfigManager.Input
         {
             if (TInputSystemUIInputModule == null)
             {
-                ConfigMngrPlugin.Logger.LogWarning("Unable to find UI Input Module Type, Input will not work!");
+                ConfigManager.Logger.LogWarning("Unable to find UI Input Module Type, Input will not work!");
                 return;
             }
 

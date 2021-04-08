@@ -68,6 +68,7 @@ namespace ConfigManager.UI
         public void UpdateValue()
         {
             IValue.Value = RefConfig.BoxedValue;
+            EditedValue = RefConfig.BoxedValue;
 
             IValue.OnValueUpdated();
             IValue.RefreshSubContentState();
@@ -82,9 +83,19 @@ namespace ConfigManager.UI
             if ((edited == null && IValue.Value == null) || (edited != null && edited.Equals(IValue.Value)))
                 return;
 
-            EditedValue = IValue.Value;
-            ConfigurationEditor.OnEntryEdit(this);
-            m_undoButton.SetActive(true);
+            if (ConfigManager.Auto_Save_Configs.Value)
+            {
+                RefConfig.BoxedValue = IValue.Value;
+                if (!RefConfig.ConfigFile.SaveOnConfigSet)
+                    RefConfig.ConfigFile.Save();
+                UpdateValue();
+            }
+            else
+            {
+                EditedValue = IValue.Value;
+                ConfigurationEditor.OnEntryEdit(this);
+                m_undoButton.SetActive(true);
+            }
         }
 
         public void UndoEdits()
@@ -101,7 +112,7 @@ namespace ConfigManager.UI
         {
             RefConfig.BoxedValue = RefConfig.DefaultValue;
             UpdateValue();
-            OnSaveOrUndo();
+            ConfigurationEditor.OnEntryUndo(this);
         }
 
         internal void OnSaveOrUndo()
@@ -153,7 +164,7 @@ namespace ConfigManager.UI
             // config entry label
 
             m_mainLabel = UIFactory.CreateLabel(horiGroup, "ConfigLabel", this.RefConfig.Definition.Key, TextAnchor.MiddleLeft, 
-                new Color(0.7f, 1, 0.7f));
+                new Color(0.9f, 0.9f, 0.7f));
             m_mainLabel.text += $" <i>({SignatureHighlighter.ParseFullSyntax(RefConfig.SettingType, false)})</i>";
             UIFactory.SetLayoutElement(m_mainLabel.gameObject, minWidth: 200, minHeight: 22, flexibleWidth: 9999, flexibleHeight: 0);
 

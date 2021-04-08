@@ -69,7 +69,7 @@ namespace ConfigManager.Input
             }
             catch (Exception e)
             {
-                ConfigMngrPlugin.Logger.LogMessage($"Exception setting Cursor state: {e.GetType()}, {e.Message}");
+                ConfigManager.Logger.LogMessage($"Exception setting Cursor state: {e.GetType()}, {e.Message}");
             }
         }
 
@@ -148,7 +148,7 @@ namespace ConfigManager.Input
             }
             catch (Exception e)
             {
-                ConfigMngrPlugin.Logger.LogMessage($"Error on CursorUnlocker.Init! {e.GetType()}, {e.Message}");
+                ConfigManager.Logger.LogMessage($"Error on CursorUnlocker.Init! {e.GetType()}, {e.Message}");
             }
         }
 
@@ -157,7 +157,7 @@ namespace ConfigManager.Input
             try
             {
                 var prop = type.GetProperty(property);
-                ConfigMngrPlugin.Harmony.Patch(prop.GetSetMethod(), prefix: prefix);
+                ConfigManager.Harmony.Patch(prop.GetSetMethod(), prefix: prefix);
             }
             catch //(Exception e)
             {

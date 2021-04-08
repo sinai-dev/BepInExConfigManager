@@ -54,7 +54,7 @@ namespace ConfigManager.UI
             if (!CanvasRoot)
                 return;
 
-            if (InputManager.GetKeyDown(ConfigMngrPlugin.Main_Menu_Toggle.Value))
+            if (InputManager.GetKeyDown(ConfigManager.Main_Menu_Toggle.Value))
                 ShowMenu = !ShowMenu;
 
             if (!ShowMenu)
@@ -81,6 +81,7 @@ namespace ConfigManager.UI
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
             canvas.referencePixelsPerUnit = 100;
             canvas.sortingOrder = 999;
+            canvas.scaleFactor = ConfigManager.UI_Scale.Value;
 
             CanvasScaler scaler = CanvasRoot.AddComponent<CanvasScaler>();
             scaler.referenceResolution = new Vector2(1920, 1080);
@@ -100,7 +101,7 @@ namespace ConfigManager.UI
 
             if (bundle == null)
             {
-                ConfigMngrPlugin.Logger.LogWarning("Could not load the UI Bundle!");
+                ConfigManager.Logger.LogWarning("Could not load the UI Bundle!");
                 return;
             }
 
@@ -115,7 +116,7 @@ namespace ConfigManager.UI
         {
             try
             {
-                var stream = typeof(ConfigMngrPlugin)
+                var stream = typeof(ConfigManager)
                     .Assembly
                     .GetManifestResourceStream($"ConfigManager.Resources.{version}.bundle");
 

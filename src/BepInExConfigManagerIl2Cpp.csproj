@@ -115,7 +115,7 @@
     <Compile Include="Input\InputSystem.cs" />
     <Compile Include="Input\LegacyInput.cs" />
     <Compile Include="Input\NoInput.cs" />
-    <Compile Include="ConfigMngrPlugin.cs" />
+    <Compile Include="ConfigManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Runtime\Il2Cpp\AssetBundle.cs" />
     <Compile Include="Runtime\Il2Cpp\ICallManager.cs" />

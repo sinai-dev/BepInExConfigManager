@@ -17,14 +17,14 @@ using UnityEngine;
 namespace ConfigManager
 {
     [BepInPlugin(GUID, NAME, VERSION)]
-    public class ConfigMngrPlugin : BasePlugin
+    public class ConfigManager : BasePlugin
     {
         public const string GUID = "com.sinai.bepinexconfigmanager.il2cpp";
         public const string NAME = "BepInExConfigManager.Il2Cpp";
         public const string AUTHOR = "Sinai";
-        public const string VERSION = "0.1.0";
+        public const string VERSION = "0.1.1";
 
-        public static ConfigMngrPlugin Instance { get; private set; }
+        public static ConfigManager Instance { get; private set; }
         public static HarmonyLib.Harmony Harmony { get; private set; }
         public static BepInEx.Logging.ManualLogSource Logger => Instance.Log;
 
@@ -32,6 +32,8 @@ namespace ConfigManager
         internal const string CTG_ID = "BepInExConfigManager";
         internal static string CTG = "Settings";
         public static ConfigEntry<KeyCode> Main_Menu_Toggle;
+        public static ConfigEntry<bool> Auto_Save_Configs;
+        public static ConfigEntry<float> UI_Scale;
 
         public override void Load()
         {
@@ -47,7 +49,9 @@ namespace ConfigManager
 
             RuntimeProvider.Init();
             InputManager.Init();
+
             InitConfig();
+
             UIFactory.Init();
             UIManager.Init();
 
@@ -80,7 +84,31 @@ namespace ConfigManager
                 KeyCode.F5, 
                 new ConfigDescription("The toggle for the Config Manager menu"));
 
+            Auto_Save_Configs = Config.Bind(new ConfigDefinition(CTG, "Auto-save settings"),
+                false,
+                new ConfigDescription("Automatically save settings after changing them? This will mean the undo feature will be unavailable."));
+
+            Auto_Save_Configs.SettingChanged += Auto_Save_Configs_SettingChanged;
+
+            UI_Scale = Config.Bind(new ConfigDefinition(CTG, "UI Scale"),
+                1f,
+                new ConfigDescription("The scale of the UI elements", new AcceptableValueRange<float>(0.75f, 1.25f)));
+
+            UI_Scale.SettingChanged += UiScale_SettingChanged;
+
             // InitTest();
+        }
+
+        private void Auto_Save_Configs_SettingChanged(object sender, EventArgs e)
+        {
+            bool val = (bool)(e as SettingChangedEventArgs).ChangedSetting.BoxedValue;
+            ConfigurationEditor.saveButton.gameObject.SetActive(!val);
+        }
+
+        private void UiScale_SettingChanged(object sender, EventArgs e)
+        {
+            float scale = (float)(e as SettingChangedEventArgs).ChangedSetting.BoxedValue;
+            UIManager.CanvasRoot.GetComponent<Canvas>().scaleFactor = scale;
         }
 
         ////  ~~~~~~~~~~~~~~~~ TEST CONFIG ~~~~~~~~~~~~~~~~

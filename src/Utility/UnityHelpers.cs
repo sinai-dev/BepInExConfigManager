@@ -18,7 +18,7 @@ namespace ConfigManager
             if (obj == null)
             {
                 if (!suppressWarning)
-                    ConfigMngrPlugin.Logger.LogWarning("The target instance is null!");
+                    ConfigManager.Logger.LogWarning("The target instance is null!");
 
                 return true;
             }
@@ -27,7 +27,7 @@ namespace ConfigManager
                 if (!unityObj)
                 {
                     if (!suppressWarning)
-                        ConfigMngrPlugin.Logger.LogWarning("The target UnityEngine.Object was destroyed!");
+                        ConfigManager.Logger.LogWarning("The target UnityEngine.Object was destroyed!");
 
                     return true;
                 }

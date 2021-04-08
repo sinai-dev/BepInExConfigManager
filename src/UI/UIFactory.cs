@@ -23,7 +23,7 @@ namespace ConfigManager.UI
         {
             if (!parent)
             {
-                ConfigMngrPlugin.Logger.LogWarning("Cannot create UI object as the parent is null or destroyed! (" + name + ")");
+                ConfigManager.Logger.LogWarning("Cannot create UI object as the parent is null or destroyed! (" + name + ")");
                 return null;
             }
 

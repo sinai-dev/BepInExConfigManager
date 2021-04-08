@@ -52,7 +52,7 @@ namespace ConfigManager.UI
         private static string currentFilter;
 
         private static readonly HashSet<CachedConfigEntry> editingEntries = new HashSet<CachedConfigEntry>();
-        private static Button saveButton;
+        internal static Button saveButton;
 
         private static readonly Dictionary<string, ConfigFileInfo> _categoryInfos = new Dictionary<string, ConfigFileInfo>();
         private static ConfigFileInfo _currentCategory;
@@ -65,7 +65,7 @@ namespace ConfigManager.UI
         {
             if (Instance != null)
             {
-                ConfigMngrPlugin.Logger.LogWarning("An instance of PreferencesEditor already exists, cannot create another!");
+                ConfigManager.Logger.LogWarning("An instance of PreferencesEditor already exists, cannot create another!");
                 return;
             }
 
@@ -187,8 +187,6 @@ namespace ConfigManager.UI
             _currentCategory = null;
         }
 
-        #region UI Construction
-
         private void ConstructMenu()
         {
             MainPanel = UIFactory.CreatePanel("MainMenu", out GameObject mainContent);
@@ -217,7 +215,7 @@ namespace ConfigManager.UI
             // Main title label
 
             var text = UIFactory.CreateLabel(titleBar, "TitleLabel", $"<b><color=#8b736b>BepInEx Config Manager</color></b> " +
-                $"<i><color=#ffe690>v{ConfigMngrPlugin.VERSION}</color></i>", 
+                $"<i><color=#ffe690>v{ConfigManager.VERSION}</color></i>", 
                 TextAnchor.MiddleLeft, default, true, 15);
             UIFactory.SetLayoutElement(text.gameObject, flexibleWidth: 5000);
 
@@ -250,6 +248,8 @@ namespace ConfigManager.UI
                 new Color(0.2f, 0.5f, 0.2f), new Color(0.1f, 0.2f, 0.1f), new Color(0.2f, 0.2f, 0.2f));
 
             saveButton.interactable = false;
+
+            saveButton.gameObject.SetActive(!ConfigManager.Auto_Save_Configs.Value);
         }
 
         private void ConstructToolbar(GameObject parent)
@@ -393,10 +393,8 @@ namespace ConfigManager.UI
             }
             catch (Exception ex)
             {
-                ConfigMngrPlugin.Logger.LogWarning($"Exception setting up category '{plugin.GUID}'!\r\n{ex}");
+                ConfigManager.Logger.LogWarning($"Exception setting up category '{plugin.GUID}'!\r\n{ex}");
             }
         }
-
-        #endregion
     }
 }

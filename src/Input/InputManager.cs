@@ -46,7 +46,7 @@ namespace ConfigManager.Input
 
             if (m_inputModule == null)
             {
-                ConfigMngrPlugin.Logger.LogWarning("Could not find any Input module!");
+                ConfigManager.Logger.LogWarning("Could not find any Input module!");
                 m_inputModule = new NoInput();
                 CurrentType = InputType.None;
                 return;
