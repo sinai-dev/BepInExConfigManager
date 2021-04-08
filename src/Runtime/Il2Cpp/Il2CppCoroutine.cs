@@ -101,7 +101,7 @@ namespace ConfigManager.Runtime.Il2Cpp
             }
             catch (Exception e)
             {
-                ConfigManager.Logger.LogError(e.ToString());
+                ConfigManager.Log.LogError(e.ToString());
                 Stop(FindOriginalCoro(enumerator)); // We want the entire coroutine hierachy to stop when an error happen
             }
 
@@ -124,7 +124,7 @@ namespace ConfigManager.Runtime.Il2Cpp
                     if (nextAsEnumerator != null) // il2cpp IEnumerator also handles CustomYieldInstruction
                         next = new Il2CppEnumeratorWrapper(nextAsEnumerator);
                     else
-                        ConfigManager.Logger.LogWarning($"Unknown coroutine yield object of type {il2CppObjectBase} for coroutine {enumerator}");
+                        ConfigManager.Log.LogWarning($"Unknown coroutine yield object of type {il2CppObjectBase} for coroutine {enumerator}");
                     break;
             }
 

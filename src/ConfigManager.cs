@@ -7,46 +7,30 @@ using System.Reflection;
 using System.Text;
 using BepInEx;
 using BepInEx.Configuration;
-using BepInEx.IL2CPP;
+using BepInEx.Logging;
 using ConfigManager;
 using ConfigManager.Input;
 using ConfigManager.Runtime;
 using ConfigManager.UI;
 using UnityEngine;
+using HarmonyLib;
 
 namespace ConfigManager
 {
-    [BepInPlugin(GUID, NAME, VERSION)]
-    public class ConfigManager : BasePlugin
+    public static class ConfigManager
     {
-        public const string GUID = "com.sinai.bepinexconfigmanager.il2cpp";
-        public const string NAME = "BepInExConfigManager.Il2Cpp";
-        public const string AUTHOR = "Sinai";
-        public const string VERSION = "0.1.2";
-
-        public static ConfigManager Instance { get; private set; }
-        public static HarmonyLib.Harmony Harmony { get; private set; }
-        public static BepInEx.Logging.ManualLogSource Logger => Instance.Log;
+        internal static Harmony Harmony { get; } = new Harmony(ConfigManagerPlugin.GUID);
+        internal static ManualLogSource Log => ConfigManagerPlugin.LogSource;
 
         // Internal config
         internal const string CTG_ID = "BepInExConfigManager";
         internal static string CTG = "Settings";
-        public static ConfigEntry<KeyCode> Main_Menu_Toggle;
-        public static ConfigEntry<bool> Auto_Save_Configs;
-        public static ConfigEntry<float> UI_Scale;
+        internal static ConfigEntry<KeyCode> Main_Menu_Toggle;
+        internal static ConfigEntry<bool> Auto_Save_Configs;
+        internal static ConfigEntry<float> UI_Scale;
 
-        public override void Load()
+        public static void Init()
         {
-            Instance = this;
-
-            Harmony = new HarmonyLib.Harmony(GUID);
-
-            UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<DummyBehaviour>();
-            var obj = new GameObject("ConfigManagerBehaviour");
-            GameObject.DontDestroyOnLoad(obj);
-            obj.hideFlags |= HideFlags.HideAndDontSave;
-            obj.AddComponent<DummyBehaviour>();
-
             RuntimeProvider.Init();
             InputManager.Init();
 
@@ -58,39 +42,34 @@ namespace ConfigManager
             Log.LogMessage("ConfigManager initialized.");
         }
 
-        public class DummyBehaviour : MonoBehaviour
+        private static bool doneSetupCategories;
+
+        public static void Update()
         {
-            public DummyBehaviour(IntPtr ptr) : base(ptr) { }
-
-            private static bool doneSetupCategories;
-
-            internal void Update()
+            if (!doneSetupCategories)
             {
-                if (!doneSetupCategories)
-                {
-                    ConfigurationEditor.SetupCategories();
+                ConfigurationEditor.SetupCategories();
 
-                    doneSetupCategories = true;
-                }
-
-                UIManager.Update();
-                InputManager.Update();
+                doneSetupCategories = true;
             }
+
+            UIManager.Update();
+            InputManager.Update();
         }
 
-        public void InitConfig()
+        public static void InitConfig()
         {
-            Main_Menu_Toggle = Config.Bind(new ConfigDefinition(CTG, "Main Menu Toggle"), 
+            Main_Menu_Toggle = ConfigManagerPlugin.Instance.Config.Bind(new ConfigDefinition(CTG, "Main Menu Toggle"), 
                 KeyCode.F5, 
                 new ConfigDescription("The toggle for the Config Manager menu"));
 
-            Auto_Save_Configs = Config.Bind(new ConfigDefinition(CTG, "Auto-save settings"),
+            Auto_Save_Configs = ConfigManagerPlugin.Instance.Config.Bind(new ConfigDefinition(CTG, "Auto-save settings"),
                 false,
                 new ConfigDescription("Automatically save settings after changing them? This will mean the undo feature will be unavailable."));
 
             Auto_Save_Configs.SettingChanged += Auto_Save_Configs_SettingChanged;
 
-            UI_Scale = Config.Bind(new ConfigDefinition(CTG, "UI Scale"),
+            UI_Scale = ConfigManagerPlugin.Instance.Config.Bind(new ConfigDefinition(CTG, "UI Scale"),
                 1f,
                 new ConfigDescription("The scale of the UI elements", new AcceptableValueRange<float>(0.75f, 1.25f)));
 
@@ -99,13 +78,13 @@ namespace ConfigManager
             // InitTest();
         }
 
-        private void Auto_Save_Configs_SettingChanged(object sender, EventArgs e)
+        private static void Auto_Save_Configs_SettingChanged(object sender, EventArgs e)
         {
             bool val = (bool)(e as SettingChangedEventArgs).ChangedSetting.BoxedValue;
             ConfigurationEditor.saveButton.gameObject.SetActive(!val);
         }
 
-        private void UiScale_SettingChanged(object sender, EventArgs e)
+        private static void UiScale_SettingChanged(object sender, EventArgs e)
         {
             float scale = (float)(e as SettingChangedEventArgs).ChangedSetting.BoxedValue;
             UIManager.CanvasRoot.GetComponent<Canvas>().scaleFactor = scale;

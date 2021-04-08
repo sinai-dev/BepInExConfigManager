@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using BepInEx.IL2CPP;
 using ConfigManager.Runtime;
 using System;
 using System.Collections;
@@ -10,6 +9,9 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+#if CPP
+using BepInEx.IL2CPP;
+#endif
 
 namespace ConfigManager.UI
 {
@@ -65,7 +67,7 @@ namespace ConfigManager.UI
         {
             if (Instance != null)
             {
-                ConfigManager.Logger.LogWarning("An instance of PreferencesEditor already exists, cannot create another!");
+                ConfigManager.Log.LogWarning("An instance of PreferencesEditor already exists, cannot create another!");
                 return;
             }
 
@@ -215,7 +217,7 @@ namespace ConfigManager.UI
             // Main title label
 
             var text = UIFactory.CreateLabel(titleBar, "TitleLabel", $"<b><color=#8b736b>BepInEx Config Manager</color></b> " +
-                $"<i><color=#ffe690>v{ConfigManager.VERSION}</color></i>", 
+                $"<i><color=#ffe690>v{ConfigManagerPlugin.VERSION}</color></i>", 
                 TextAnchor.MiddleLeft, default, true, 15);
             UIFactory.SetLayoutElement(text.gameObject, flexibleWidth: 5000);
 
@@ -293,18 +295,37 @@ namespace ConfigManager.UI
             btnColors = RuntimeProvider.Instance.SetColorBlock(btnColors, _normalInactiveColor, new Color(0.6f, 0.55f, 0.45f),
                 new Color(0.20f, 0.18f, 0.15f));
 
-            // TODO fix for Mono
+#if CPP
+            ConfigFile coreConfig = ConfigFile.CoreConfig;
+#else
+            ConfigFile coreConfig = (ConfigFile)ReflectionUtility.GetPropertyInfo(typeof(ConfigFile), "CoreConfig").GetValue(null, null);
+#endif
+            if (coreConfig != null)
+                SetupCategory(coreConfig, new BepInPlugin("bepinex.core.config", "BepInEx", "1.0"), btnColors);
 
-            SetupCategory(ConfigFile.CoreConfig, new BepInPlugin("bepinex.core.config", "BepInEx", "1.0"), btnColors);
-
+#if CPP
             foreach (var plugin in IL2CPPChainloader.Instance.Plugins.Values)
             {
-                var configFile = (plugin.Instance as BasePlugin).Config;
+                var configFile = (plugin.Instance as BasePlugin)?.Config;
                 if (configFile != null && configFile.Keys.Any())
-                {
                     SetupCategory(configFile, plugin.Metadata, btnColors);
-                }
             }
+#else
+            if (BepInEx.Bootstrap.Chainloader.PluginInfos == null)
+            {
+                ConfigManager.Log.LogWarning("Chainload pluginInfos is null!");
+                return;
+            }
+            foreach (var plugin in BepInEx.Bootstrap.Chainloader.PluginInfos)
+            {
+                if (plugin.Value?.Instance?.Info?.Metadata == null)
+                    continue;
+
+                var configFile = plugin.Value.Instance.Config;
+                if (configFile != null && configFile.Keys.Any())
+                    SetupCategory(configFile, plugin.Value.Instance.Info.Metadata, btnColors);
+            }
+#endif
         }
 
         internal static void SetupCategory(ConfigFile configFile, BepInPlugin plugin, ColorBlock btnColors)
@@ -393,7 +414,7 @@ namespace ConfigManager.UI
             }
             catch (Exception ex)
             {
-                ConfigManager.Logger.LogWarning($"Exception setting up category '{plugin.GUID}'!\r\n{ex}");
+                ConfigManager.Log.LogWarning($"Exception setting up category '{plugin.GUID}'!\r\n{ex}");
             }
         }
     }

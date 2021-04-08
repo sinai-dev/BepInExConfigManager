@@ -1,18 +1,24 @@
-# BepInExConfigManager.Il2Cpp
+# BepInExConfigManager
 
-In-game UI for managing BepInEx Configurations in IL2CPP.
+In-game UI for managing BepInEx Configurations, for IL2CPP and Mono Unity games.
 
-Requires BepInEx 6+.
+Requires BepInEx 6 for IL2CPP, and BepInEx 5 for Mono.
+
+## Todo
+
+* Handle "Advanced" settings (currently all advanced settings and categories are shown) and other attributes
+* Add support for `AcceptableValueList`
 
 ## Releases [![](https://img.shields.io/github/release/sinai-dev/BepInExConfigManager.svg?label=release%20notes)](../../releases/latest)
 
 * [Download (IL2CPP)](https://github.com/sinai-dev/BepInExConfigManager/releases/latest/download/BepInExConfigManager.Il2Cpp.zip)
+* [Download (Mono)](https://github.com/sinai-dev/BepInExConfigManager/releases/latest/download/BepInExConfigManager.Mono.zip)
 
 ## How to use
 
 * Put the DLL in your `BepInEx\plugins\` folder.
 * Start the game and press `F5` to open the Menu.
-* You can change the keybinding under the `BepInExConfigManager.Il2Cpp` category in the Menu, or by editing the file `BepInEx\config\com.sinai.bepinexconfigmanager.il2cpp.cfg`.
+* You can change the keybinding under the `BepInExConfigManager` category in the Menu, or by editing the file `BepInEx\config\com.sinai.BepInExConfigManager.cfg`.
 
 [![](img/preview.png)](https://raw.githubusercontent.com/sinai-dev/BepInExConfigManager/master/img/preview.png)
 
@@ -59,8 +65,3 @@ public class MyMod : BepInEx.IL2CPP.BasePlugin
     }
 }
 ```
-
-## Todo
-
-* Add support for `AcceptableValueList`
-* Handle "Advanced" settings and other attributes / tags

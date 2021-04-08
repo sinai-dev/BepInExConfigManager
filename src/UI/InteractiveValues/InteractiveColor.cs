@@ -156,7 +156,7 @@ namespace ConfigManager.UI.InteractiveValues
                 }
                 catch (Exception ex)
                 {
-                    ConfigManager.Logger.LogMessage(ex.ToString());
+                    ConfigManager.Log.LogMessage(ex.ToString());
                 }
             });
 

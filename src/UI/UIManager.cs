@@ -101,7 +101,7 @@ namespace ConfigManager.UI
 
             if (bundle == null)
             {
-                ConfigManager.Logger.LogWarning("Could not load the UI Bundle!");
+                ConfigManager.Log.LogWarning("Could not load the UI Bundle!");
                 return;
             }
 

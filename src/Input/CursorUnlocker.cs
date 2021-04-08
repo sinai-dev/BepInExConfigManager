@@ -69,7 +69,7 @@ namespace ConfigManager.Input
             }
             catch (Exception e)
             {
-                ConfigManager.Logger.LogMessage($"Exception setting Cursor state: {e.GetType()}, {e.Message}");
+                ConfigManager.Log.LogMessage($"Exception setting Cursor state: {e.GetType()}, {e.Message}");
             }
         }
 
@@ -145,7 +145,7 @@ namespace ConfigManager.Input
             }
             catch (Exception e)
             {
-                ConfigManager.Logger.LogMessage($"Error on CursorUnlocker.Init! {e.GetType()}, {e.Message}");
+                ConfigManager.Log.LogMessage($"Error on CursorUnlocker.Init! {e.GetType()}, {e.Message}");
             }
         }
 

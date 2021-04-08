@@ -82,8 +82,8 @@ namespace ConfigManager.UI.InteractiveValues
             if (Owner.RefConfig.Description.AcceptableValues is AcceptableValueBase range)
             {
                 var gtype = typeof(AcceptableValueRange<>).MakeGenericType(range.ValueType);
-                object minValue = ReflectionUtility.GetPropertyInfo(gtype, "MinValue").GetValue(range);
-                object maxValue = ReflectionUtility.GetPropertyInfo(gtype, "MaxValue").GetValue(range);
+                object minValue = ReflectionUtility.GetPropertyInfo(gtype, "MinValue").GetValue(range, null);
+                object maxValue = ReflectionUtility.GetPropertyInfo(gtype, "MaxValue").GetValue(range, null);
 
                 Owner.m_mainLabel.text += $" <color=grey><i>[{minValue.ToString()} - {maxValue.ToString()}]</i></color>";
 

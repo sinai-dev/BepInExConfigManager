@@ -57,7 +57,7 @@ namespace ConfigManager.Runtime.Mono
             if (method != null)
                 return m_encodeToPNGMethod = method;
 
-            ConfigMngrPlugin.Logger.LogMessage("ERROR: Cannot get any EncodeToPNG method!");
+            ConfigManager.Log.LogMessage("ERROR: Cannot get any EncodeToPNG method!");
             return null;
         }
     }

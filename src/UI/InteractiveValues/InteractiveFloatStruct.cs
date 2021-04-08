@@ -52,7 +52,7 @@ namespace ConfigManager.UI.InteractiveValues
                 }
                 catch (Exception ex)
                 {
-                    ConfigManager.Logger.LogMessage(ex);
+                    ConfigManager.Log.LogMessage(ex);
                 }
             }
         }
@@ -138,7 +138,7 @@ namespace ConfigManager.UI.InteractiveValues
             }
             catch (Exception ex)
             {
-                ConfigManager.Logger.LogMessage(ex);
+                ConfigManager.Log.LogMessage(ex);
             }
         }
 
@@ -176,7 +176,7 @@ namespace ConfigManager.UI.InteractiveValues
             }
             catch (Exception ex)
             {
-                ConfigManager.Logger.LogMessage(ex);
+                ConfigManager.Log.LogMessage(ex);
             }
         }
     }

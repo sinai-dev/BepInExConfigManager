@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31005.135
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepInExConfigManagerIl2Cpp", "BepInExConfigManagerIl2Cpp.csproj", "{51308BD5-5872-4A72-85D2-6194673C8A5E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepInExConfigManager", "BepInExConfigManager.csproj", "{51308BD5-5872-4A72-85D2-6194673C8A5E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

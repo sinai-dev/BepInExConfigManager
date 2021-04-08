@@ -92,7 +92,7 @@ namespace ConfigManager.Runtime
             }
             catch (Exception e)
             {
-                ConfigManager.Logger.LogMessage("Exception on ForceReadTexture: " + e.ToString());
+                ConfigManager.Log.LogMessage("Exception on ForceReadTexture: " + e.ToString());
                 return default;
             }
         }
@@ -121,7 +121,7 @@ namespace ConfigManager.Runtime
 
             if (data == null || !data.Any())
             {
-                ConfigManager.Logger.LogWarning("Couldn't get any data for the texture!");
+                ConfigManager.Log.LogWarning("Couldn't get any data for the texture!");
             }
             else
             {

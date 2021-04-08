@@ -34,7 +34,7 @@ namespace ConfigManager.UI.InteractiveValues
             }
             catch
             {
-                ConfigManager.Logger.LogWarning($"Unable to edit entry '{Owner.RefConfig.Definition.Key}' due to an error with the Toml converter!");
+                ConfigManager.Log.LogWarning($"Unable to edit entry '{Owner.RefConfig.Definition.Key}' due to an error with the Toml converter!");
             }
         }
 
