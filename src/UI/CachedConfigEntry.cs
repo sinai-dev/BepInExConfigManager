@@ -49,11 +49,11 @@ namespace ConfigManager.UI
 
         private void OnSettingChanged(object sender, EventArgs e)
         {
-            var args = e as SettingChangedEventArgs;
+            // ConfigMngrPlugin.Logger.LogMessage($"OnSettingChanged: {(e as SettingChangedEventArgs).ChangedSetting.Definition.Key}");
 
-            // ConfigMngrPlugin.Logger.LogMessage($"OnSettingChanged: {args.ChangedSetting.Definition.Key}");
-
-            this.IValue.Value = args.ChangedSetting.BoxedValue;
+            var val = (e as SettingChangedEventArgs).ChangedSetting.BoxedValue;
+            this.EditedValue = val; 
+            this.IValue.Value = val;
             this.IValue.OnValueUpdated();
         }
 
