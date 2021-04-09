@@ -105,8 +105,8 @@ namespace ConfigManager.UI
                     file.Save();
             }
 
-            foreach (var entry in editingEntries)
-                entry.OnSaveOrUndo();
+            for (int i = editingEntries.Count - 1; i >= 0; i--)
+                editingEntries.ElementAt(i).OnSaveOrUndo();
 
             editingEntries.Clear();
             saveButton.interactable = false;
