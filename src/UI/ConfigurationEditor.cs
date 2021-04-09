@@ -4,6 +4,7 @@ using ConfigManager.Runtime;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -23,7 +24,7 @@ namespace ConfigManager.UI
 
             internal List<EntryInfo> Entries = new List<EntryInfo>();
 
-            //internal bool isCompletelyHidden;
+            internal bool isCompletelyHidden;
             internal Button listButton;
             internal GameObject contentObj;
 
@@ -36,8 +37,7 @@ namespace ConfigManager.UI
             public EntryInfo(CachedConfigEntry cached) { Cached = cached; }
             public CachedConfigEntry Cached { get; }
             public ConfigEntryBase RefEntry;
-            // TODO this is not correct, just a placeholder until I see how it's actually done
-            public bool IsHidden => false;// RefEntry.Description.Tags?.Any(it => (string)it == "Advanced") ?? false;
+            public bool IsHidden { get; internal set; }
 
             internal GameObject content;
         }
@@ -119,17 +119,16 @@ namespace ConfigManager.UI
 
             ShowHiddenConfigs = show;
 
-            // TODO check completely hidden
-            //foreach (var entry in _categoryInfos)
-            //{
-            //    var info = entry.Value;
+            foreach (var entry in _categoryInfos)
+            {
+                var info = entry.Value;
 
-            //    if (info.isCompletelyHidden)
-            //        info.listButton.gameObject.SetActive(ShowHiddenConfigs);
-            //}
+                if (info.isCompletelyHidden)
+                    info.listButton.gameObject.SetActive(ShowHiddenConfigs);
+            }
 
-            //if (_currentCategory != null && !ShowHiddenConfigs && _currentCategory.isCompletelyHidden)
-            //    UnsetActiveCategory();
+            if (_currentCategory != null && !ShowHiddenConfigs && _currentCategory.isCompletelyHidden)
+                UnsetActiveCategory();
 
             RefreshFilter();
         }
@@ -301,14 +300,14 @@ namespace ConfigManager.UI
             ConfigFile coreConfig = (ConfigFile)ReflectionUtility.GetPropertyInfo(typeof(ConfigFile), "CoreConfig").GetValue(null, null);
 #endif
             if (coreConfig != null)
-                SetupCategory(coreConfig, new BepInPlugin("bepinex.core.config", "BepInEx", "1.0"), btnColors);
+                SetupCategory(coreConfig, null, new BepInPlugin("bepinex.core.config", "BepInEx", "1.0"), btnColors, true);
 
 #if CPP
             foreach (var plugin in IL2CPPChainloader.Instance.Plugins.Values)
             {
                 var configFile = (plugin.Instance as BasePlugin)?.Config;
                 if (configFile != null && configFile.Keys.Any())
-                    SetupCategory(configFile, plugin.Metadata, btnColors);
+                    SetupCategory(configFile, plugin.Instance, plugin.Metadata, btnColors);
             }
 #else
             if (BepInEx.Bootstrap.Chainloader.PluginInfos == null)
@@ -316,22 +315,41 @@ namespace ConfigManager.UI
                 ConfigManager.Log.LogWarning("Chainload pluginInfos is null!");
                 return;
             }
-            foreach (var plugin in BepInEx.Bootstrap.Chainloader.PluginInfos)
+            foreach (var plugin in BepInEx.Bootstrap.Chainloader.PluginInfos.Values)
             {
-                if (plugin.Value?.Instance?.Info?.Metadata == null)
+                if (plugin.Instance?.Info?.Metadata == null)
                     continue;
 
-                var configFile = plugin.Value.Instance.Config;
+                var configFile = plugin.Instance.Config;
                 if (configFile != null && configFile.Keys.Any())
-                    SetupCategory(configFile, plugin.Value.Instance.Info.Metadata, btnColors);
+                    SetupCategory(configFile, plugin.Instance, plugin.Instance.Info.Metadata, btnColors);
             }
 #endif
         }
 
-        internal static void SetupCategory(ConfigFile configFile, BepInPlugin plugin, ColorBlock btnColors)
+        internal static void SetupCategory(ConfigFile configFile, object plugin, BepInPlugin meta, ColorBlock btnColors, bool forceAdvanced = false)
         {
             try
             {
+#pragma warning disable IDE0019 // Use pattern matching
+#if CPP
+                var basePlugin = plugin as BasePlugin;
+#else
+                var basePlugin = plugin as BaseUnityPlugin;
+#endif
+#pragma warning restore IDE0019
+
+                if (basePlugin != null)
+                {
+                    var type = basePlugin.GetType();
+                    if (!forceAdvanced && type.GetCustomAttributes(typeof(BrowsableAttribute), false)
+                                              .Cast<BrowsableAttribute>()
+                                              .Any(it => !it.Browsable))
+                    {
+                        forceAdvanced = true;
+                    }
+                }
+
                 var info = new ConfigFileInfo()
                 {
                     RefConfigFile = configFile,
@@ -340,28 +358,23 @@ namespace ConfigManager.UI
                 // List button
 
                 var btn = UIFactory.CreateButton(CategoryListViewport,
-                    "BUTTON_" + plugin.GUID,
-                    plugin.Name,
-                    () => { SetActiveCategory(plugin.GUID); },
+                    "BUTTON_" + meta.GUID,
+                    meta.Name,
+                    () => { SetActiveCategory(meta.GUID); },
                     btnColors);
                 UIFactory.SetLayoutElement(btn.gameObject, flexibleWidth: 9999, minHeight: 30, flexibleHeight: 0);
 
                 info.listButton = btn;
 
-                // TODO
-                //// hide buttons for completely-hidden categories.
-                //if (!configFile.Entries.Any(it => !it.IsHidden))
-                //{
-                //    btn.gameObject.SetActive(false);
-                //    info.isCompletelyHidden = true;
-                //}
-
                 // Editor content
 
-                var content = UIFactory.CreateVerticalGroup(ConfigEditorViewport, "CATEGORY_" + plugin.GUID,
+                var content = UIFactory.CreateVerticalGroup(ConfigEditorViewport, "CATEGORY_" + meta.GUID,
                     true, false, true, true, 4, default, new Color(0.05f, 0.05f, 0.05f));
 
-                var dict = new Dictionary<string, List<ConfigEntryBase>>();
+                var dict = new Dictionary<string, List<ConfigEntryBase>>
+                {
+                    { "", new List<ConfigEntryBase>() } // make sure the null category is first.
+                };
 
                 // Iterate and prepare categories
                 foreach (var entry in configFile.Keys)
@@ -394,27 +407,49 @@ namespace ConfigManager.UI
 
                         var obj = cache.m_UIroot;
 
+                        bool advanced = forceAdvanced;
+
+                        if (!advanced)
+                        {
+                            var tags = configEntry.Description?.Tags;
+                            if (tags != null && tags.Any())
+                            {
+                                if (tags.Any(it => it is string s && s == "Advanced"))
+                                {
+                                    advanced = true;
+                                }
+                                else if (tags.FirstOrDefault(it => it.GetType().Name == "ConfigurationManagerAttributes") is object attributes)
+                                {
+                                    advanced = (bool?)attributes.GetType().GetField("IsAdvanced")?.GetValue(attributes) == true;
+                                }
+                            }
+                        }
+
                         info.Entries.Add(new EntryInfo(cache)
                         {
                             RefEntry = configEntry,
-                            content = obj
+                            content = obj,
+                            IsHidden = advanced
                         });
-
-                        // TODO
-                        //if (entry.IsHidden)
-                        //    obj.SetActive(false);
                     }
+                }
+
+                // hide buttons for completely-hidden categories.
+                if (!info.Entries.Any(it => !it.IsHidden))
+                {
+                    btn.gameObject.SetActive(false);
+                    info.isCompletelyHidden = true;
                 }
 
                 content.SetActive(false);
 
                 info.contentObj = content;
 
-                _categoryInfos.Add(plugin.GUID, info);
+                _categoryInfos.Add(meta.GUID, info);
             }
             catch (Exception ex)
             {
-                ConfigManager.Log.LogWarning($"Exception setting up category '{plugin.GUID}'!\r\n{ex}");
+                ConfigManager.Log.LogWarning($"Exception setting up category '{meta.GUID}'!\r\n{ex}");
             }
         }
     }

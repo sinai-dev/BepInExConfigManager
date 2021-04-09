@@ -59,7 +59,15 @@ namespace ConfigManager.UI
 
         public void CreateIValue(object value, Type fallbackType)
         {
-            IValue = InteractiveValue.Create(value, fallbackType);
+            if (RefConfig.Description?.AcceptableValues != null
+                && RefConfig.Description.AcceptableValues.GetType().Name.StartsWith("AcceptableValueList"))
+            {
+                var type = value.GetActualType();
+                IValue = new InteractiveValueList(value, type);
+            }
+            else
+                IValue = InteractiveValue.Create(value, fallbackType);
+
             IValue.Owner = this;
             IValue.m_mainContentParent = ContentGroup;
             IValue.m_subContentParent = this.SubContentGroup;

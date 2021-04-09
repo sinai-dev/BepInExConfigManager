@@ -14,6 +14,7 @@ using ConfigManager.Runtime;
 using ConfigManager.UI;
 using UnityEngine;
 using HarmonyLib;
+using ConfigManager.Utility;
 
 namespace ConfigManager
 {
@@ -96,7 +97,7 @@ namespace ConfigManager
         //{
         //    TomlTypeConverter.AddConverter(typeof(TestConfigClass), new TypeConverter()
         //    {
-        //        ConvertToObject = (string s, Type t) => 
+        //        ConvertToObject = (string s, Type t) =>
         //        {
         //            var split = s.Split(',');
         //            return new TestConfigClass() { myInt1 = int.Parse(split[0]), myInt2 = int.Parse(split[1]) };
@@ -113,31 +114,36 @@ namespace ConfigManager
         //        {
         //            var split = s.Split(',');
         //            var c = new CultureInfo("en-US");
-        //            return new Color() 
+        //            return new Color()
         //            {
-        //                r = float.Parse(split[0], c), 
-        //                g = float.Parse(split[1], c), 
-        //                b = float.Parse(split[2], c), 
-        //                a = float.Parse(split[3], c) 
+        //                r = float.Parse(split[0], c),
+        //                g = float.Parse(split[1], c),
+        //                b = float.Parse(split[2], c),
+        //                a = float.Parse(split[3], c)
         //            };
         //        },
         //        ConvertToString = (object o, Type t) =>
         //        {
         //            var x = (Color)o;
         //            return string.Format(new CultureInfo("en-US"), "{0},{1},{2},{3}",
-        //                x.r, 
-        //                x.g, 
-        //                x.b, 
-        //                x.a);
+        //                x.r, x.g, x.b, x.a);
         //        }
         //    });
 
         //    string ctg1 = "Category One";
         //    string ctg2 = "Category Two";
-        //    var file = Instance.Config;
+        //    var file = ConfigManagerPlugin.Instance.Config;
+
+        //    file.Bind(new ConfigDefinition(ctg1, "Advanced setting 1"), true, new ConfigDescription("", null, "Advanced"));
+        //    file.Bind(new ConfigDefinition(ctg1, "Advanced setting 2"), true, new ConfigDescription("", null, 
+        //        new ConfigurationManagerAttributes() { IsAdvanced = true }));
+
+        //    file.Bind(new ConfigDefinition(ctg1, "ValueList"), "One", new ConfigDescription("",
+        //        new AcceptableValueList<string>("One", "Two", "Three", "Four")));
+
         //    file.Bind(new ConfigDefinition(ctg1, "This is a setting name"), true, new ConfigDescription("This is a description\r\nwith a new line"));
         //    file.Bind(new ConfigDefinition(ctg1, "Take a byte"), (byte)0xD, new ConfigDescription("Bytes have a max value of 255"));
-        //    file.Bind(new ConfigDefinition(ctg1, "Int slider"), 32, new ConfigDescription("You can use sliders for any number type", 
+        //    file.Bind(new ConfigDefinition(ctg1, "Int slider"), 32, new ConfigDescription("You can use sliders for any number type",
         //        new AcceptableValueRange<int>(0, 100)));
         //    file.Bind(new ConfigDefinition(ctg1, "Float slider"), 666.6f, new ConfigDescription("", new AcceptableValueRange<float>(0f, 1000f)));
         //    file.Bind(new ConfigDefinition(ctg1, "Key binding"), KeyCode.Dollar, new ConfigDescription("Keybinds have a special rebind helper"));
@@ -147,7 +153,7 @@ namespace ConfigManager
         //    file.Bind(new ConfigDefinition(ctg2, "Multiline input"), "Hello,\r\nworld!", new ConfigDescription("Strings use a multi-line input field"));
         //    //file.Bind(new ConfigDefinition(ctg2, "Float structs"), Vector3.up, new ConfigDescription("Float-structs use an editor like this"));
         //    file.Bind(new ConfigDefinition(ctg2, "Flag toggles"), BindingFlags.Public, new ConfigDescription("Enums with [Flags] attribute use a multi-toggle"));
-        //    file.Bind(new ConfigDefinition(ctg2, "Custom type"), new TestConfigClass() { myInt1 = 25, myInt2 = 50 }, 
+        //    file.Bind(new ConfigDefinition(ctg2, "Custom type"), new TestConfigClass() { myInt1 = 25, myInt2 = 50 },
         //        new ConfigDescription("Custom types are supported with a basic Toml input, if a Converter was registered to TypeConverter."));
         //}
 

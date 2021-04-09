@@ -8,8 +8,6 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
-// TODO SWAP OVER TO BEPINEX TOML
-
 namespace ConfigManager.UI.InteractiveValues
 {
     public class InteractiveTomlObject : InteractiveValue
