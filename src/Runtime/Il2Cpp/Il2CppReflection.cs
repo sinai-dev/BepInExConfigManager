@@ -31,6 +31,18 @@ namespace ConfigManager.Runtime.Il2Cpp
             return Il2CppCast(obj, castTo);
         }
 
+        public override T TryCast<T>(object obj)
+        {
+            try
+            {
+                return (T)Il2CppCast(obj, typeof(T));
+            }
+            catch
+            {
+                return default;
+            }
+        }
+
         public override string ProcessTypeNameInString(Type type, string theString, ref string typeName)
         {
             if (!Il2CppTypeNotNull(type))

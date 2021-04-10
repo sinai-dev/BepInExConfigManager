@@ -28,12 +28,17 @@ namespace ConfigManager.Runtime
             Instance = new Mono.MonoProvider();
 #endif
 
-
         public abstract void Initialize();
 
         // Unity API handlers
 
-        public abstract ColorBlock SetColorBlock(ColorBlock colors, Color? normal = null, Color? highlighted = null, Color? pressed = null,
+        public abstract void SetColorBlock(Selectable selectable, ColorBlock colors);
+
+        public abstract void SetColorBlock(Selectable selectable, Color? normal = null, Color? highlighted = null, Color? pressed = null,
             Color? disabled = null);
+
+        public abstract T AddComponent<T>(GameObject obj, Type type) where T : Component;
+
+        public abstract ScriptableObject CreateScriptable(Type type);
     }
 }

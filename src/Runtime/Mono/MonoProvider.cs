@@ -19,9 +19,12 @@ namespace ConfigManager.Runtime.Mono
             Reflection = new MonoReflection();
             TextureUtil = new MonoTextureUtil();
         }
-        public override ColorBlock SetColorBlock(ColorBlock colors, Color? normal = null, Color? highlighted = null, Color? pressed = null,
+
+        public override void SetColorBlock(Selectable selectable, Color? normal = null, Color? highlighted = null, Color? pressed = null,
             Color? disabled = null)
         {
+            var colors = selectable.colors;
+
             if (normal != null)
                 colors.normalColor = (Color)normal;
 
@@ -34,7 +37,22 @@ namespace ConfigManager.Runtime.Mono
             if (disabled != null)
                 colors.disabledColor = (Color)disabled;
 
-            return colors;
+            SetColorBlock(selectable, colors);
+        }
+
+        public override void SetColorBlock(Selectable selectable, ColorBlock colors)
+        {
+            selectable.colors = colors;
+        }
+
+        public override T AddComponent<T>(GameObject obj, Type type)
+        {
+            return (T)obj.AddComponent(type);
+        }
+
+        public override ScriptableObject CreateScriptable(Type type)
+        {
+            return ScriptableObject.CreateInstance(type);
         }
     }
 }

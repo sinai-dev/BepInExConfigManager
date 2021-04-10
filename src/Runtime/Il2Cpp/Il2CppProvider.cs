@@ -14,6 +14,7 @@ using System.Collections;
 using UnityEngine.UI;
 using ConfigManager.Input;
 using UnityEngine.EventSystems;
+using ConfigManager.Utility;
 
 namespace ConfigManager.Runtime.Il2Cpp
 {
@@ -27,47 +28,105 @@ namespace ConfigManager.Runtime.Il2Cpp
 
         // Unity API Handlers
 
-        internal static bool? s_doPropertiesExist;
+        internal static bool triedToGetColorBlockProps;
+        internal static PropertyInfo _normalColorProp;
+        internal static PropertyInfo _highlightColorProp;
+        internal static PropertyInfo _pressedColorProp;
+        internal static PropertyInfo _disabledColorProp;
 
-        public override ColorBlock SetColorBlock(ColorBlock colors, Color? normal = null, Color? highlighted = null, Color? pressed = null,
+        public override void SetColorBlock(Selectable selectable, Color? normal = null, Color? highlighted = null, Color? pressed = null, 
             Color? disabled = null)
         {
-            if (s_doPropertiesExist == null)
-            {
-                var prop = ReflectionUtility.GetPropertyInfo(typeof(ColorBlock), "normalColor") as PropertyInfo;
-                s_doPropertiesExist = prop != null && prop.CanWrite;
-            }
+            var colors = selectable.colors;
 
             colors.colorMultiplier = 1;
 
             object boxed = (object)colors;
 
-            if (s_doPropertiesExist == true)
+            if (!triedToGetColorBlockProps)
             {
-                if (normal != null)
-                    ReflectionUtility.GetPropertyInfo(typeof(ColorBlock), "normalColor").SetValue(boxed, (Color)normal);
-                if (pressed != null)
-                    ReflectionUtility.GetPropertyInfo(typeof(ColorBlock), "pressedColor").SetValue(boxed, (Color)pressed);
-                if (highlighted != null)
-                    ReflectionUtility.GetPropertyInfo(typeof(ColorBlock), "highlightedColor").SetValue(boxed, (Color)highlighted);
-                if (disabled != null)
-                    ReflectionUtility.GetPropertyInfo(typeof(ColorBlock), "disabledColor").SetValue(boxed, (Color)disabled);
+                triedToGetColorBlockProps = true;
+
+                if (ReflectionUtility.GetPropertyInfo(typeof(ColorBlock), "normalColor") is PropertyInfo norm && norm.CanWrite)
+                    _normalColorProp = norm;
+                if (ReflectionUtility.GetPropertyInfo(typeof(ColorBlock), "highlightedColor") is PropertyInfo high && high.CanWrite)
+                    _highlightColorProp = high;
+                if (ReflectionUtility.GetPropertyInfo(typeof(ColorBlock), "pressedColor") is PropertyInfo pres && pres.CanWrite)
+                    _pressedColorProp = pres;
+                if (ReflectionUtility.GetPropertyInfo(typeof(ColorBlock), "disabledColor") is PropertyInfo disa && disa.CanWrite)
+                    _disabledColorProp = disa;
             }
-            else if (s_doPropertiesExist == false)
+
+            try
             {
                 if (normal != null)
-                    ReflectionUtility.GetFieldInfo(typeof(ColorBlock), "m_NormalColor").SetValue(boxed, (Color)normal);
-                if (pressed != null)
-                    ReflectionUtility.GetFieldInfo(typeof(ColorBlock), "m_PressedColor").SetValue(boxed, (Color)pressed);
+                {
+                    if (_normalColorProp != null)
+                        _normalColorProp.SetValue(boxed, (Color)normal);
+                    else if (ReflectionUtility.GetFieldInfo(typeof(ColorBlock), "m_NormalColor") is FieldInfo fi)
+                        fi.SetValue(boxed, (Color)normal);
+                }
+
                 if (highlighted != null)
-                    ReflectionUtility.GetFieldInfo(typeof(ColorBlock), "m_HighlightedColor").SetValue(boxed, (Color)highlighted);
+                {
+                    if (_highlightColorProp != null)
+                        _highlightColorProp.SetValue(boxed, (Color)highlighted);
+                    else if (ReflectionUtility.GetFieldInfo(typeof(ColorBlock), "m_HighlightedColor") is FieldInfo fi)
+                        fi.SetValue(boxed, (Color)highlighted);
+                }
+
+                if (pressed != null)
+                {
+                    if (_pressedColorProp != null)
+                        _pressedColorProp.SetValue(boxed, (Color)pressed);
+                    else if (ReflectionUtility.GetFieldInfo(typeof(ColorBlock), "m_PressedColor") is FieldInfo fi)
+                        fi.SetValue(boxed, (Color)pressed);
+                }
+
                 if (disabled != null)
-                    ReflectionUtility.GetFieldInfo(typeof(ColorBlock), "m_DisabledColor").SetValue(boxed, (Color)disabled);
+                {
+                    if (_disabledColorProp != null)
+                        _disabledColorProp.SetValue(boxed, (Color)disabled);
+                    else if (ReflectionUtility.GetFieldInfo(typeof(ColorBlock), "m_DisabledColor") is FieldInfo fi)
+                        fi.SetValue(boxed, (Color)disabled);
+                }
+            }
+            catch (Exception ex)
+            {
+                ConfigManager.Log.LogWarning(ex);
             }
 
             colors = (ColorBlock)boxed;
 
-            return colors;
+            SetColorBlock(selectable, colors);
+        }
+
+        public override void SetColorBlock(Selectable selectable, ColorBlock _colorBlock)
+        {
+            try
+            {
+                selectable = selectable.TryCast<Selectable>();
+
+                ReflectionUtility.GetPropertyInfo(typeof(Selectable), "m_Colors")
+                    .SetValue(selectable, _colorBlock, null);
+
+                ReflectionUtility.GetMethodInfo(typeof(Selectable), "OnSetProperty", new Type[0])
+                    .Invoke(selectable, new object[0]);
+            }
+            catch (Exception ex)
+            {
+                ConfigManager.Log.LogMessage(ex);
+            }
+        }
+
+        public override T AddComponent<T>(GameObject obj, Type type)
+        {
+            return obj.AddComponent(Il2CppType.From(type)).TryCast<T>();
+        }
+
+        public override ScriptableObject CreateScriptable(Type type)
+        {
+            return ScriptableObject.CreateInstance(Il2CppType.From(type));
         }
     }
 }

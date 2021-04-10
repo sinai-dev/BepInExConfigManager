@@ -170,7 +170,7 @@ namespace ConfigManager.UI
             obj.SetActive(true);
 
             var btn = info.listButton;
-            btn.colors = RuntimeProvider.Instance.SetColorBlock(btn.colors, _normalActiveColor);
+            RuntimeProvider.Instance.SetColorBlock(btn, _normalActiveColor);
 
             RefreshFilter();
         }
@@ -180,9 +180,7 @@ namespace ConfigManager.UI
             if (_currentCategory == null)
                 return;
 
-            var colors = _currentCategory.listButton.colors;
-            colors = RuntimeProvider.Instance.SetColorBlock(colors, _normalInactiveColor);
-            _currentCategory.listButton.colors = colors;
+            RuntimeProvider.Instance.SetColorBlock(_currentCategory.listButton, _normalInactiveColor);
             _currentCategory.contentObj.SetActive(false);
 
             _currentCategory = null;
@@ -222,16 +220,13 @@ namespace ConfigManager.UI
 
             // Hide button
 
-            ColorBlock colorBlock = new ColorBlock();
-            colorBlock = RuntimeProvider.Instance.SetColorBlock(colorBlock, new Color(1, 0.2f, 0.2f),
-                new Color(1, 0.6f, 0.6f), new Color(0.3f, 0.1f, 0.1f));
-
             var hideButton = UIFactory.CreateButton(titleBar,
                 "HideButton",
                 $"X",
-                () => { UIManager.ShowMenu = false; },
-                colorBlock);
+                () => { UIManager.ShowMenu = false; });
             UIFactory.SetLayoutElement(hideButton.gameObject, minWidth: 25, flexibleWidth: 0);
+            RuntimeProvider.Instance.SetColorBlock(hideButton, new Color(1, 0.2f, 0.2f),
+                new Color(1, 0.6f, 0.6f), new Color(0.3f, 0.1f, 0.1f));
 
             Text hideText = hideButton.GetComponentInChildren<Text>();
             hideText.color = Color.white;
@@ -244,8 +239,7 @@ namespace ConfigManager.UI
         {
             saveButton = UIFactory.CreateButton(mainContent, "SaveButton", "Save Preferences", SavePreferences);
             UIFactory.SetLayoutElement(saveButton.gameObject, minHeight: 35, flexibleWidth: 9999);
-            var colors = new ColorBlock() { colorMultiplier = 1 };
-            saveButton.colors = RuntimeProvider.Instance.SetColorBlock(colors, new Color(0.1f, 0.3f, 0.1f),
+            RuntimeProvider.Instance.SetColorBlock(saveButton, new Color(0.1f, 0.3f, 0.1f),
                 new Color(0.2f, 0.5f, 0.2f), new Color(0.1f, 0.2f, 0.1f), new Color(0.2f, 0.2f, 0.2f));
 
             saveButton.interactable = false;
@@ -290,31 +284,22 @@ namespace ConfigManager.UI
         // Also, stray ConfigFiles defined manually will not be found either.
         internal static void SetupCategories()
         {
-            ColorBlock btnColors = new ColorBlock();
-            btnColors = RuntimeProvider.Instance.SetColorBlock(btnColors, _normalInactiveColor, new Color(0.6f, 0.55f, 0.45f),
-                new Color(0.20f, 0.18f, 0.15f));
-
 #if CPP
             ConfigFile coreConfig = ConfigFile.CoreConfig;
 #else
             ConfigFile coreConfig = (ConfigFile)ReflectionUtility.GetPropertyInfo(typeof(ConfigFile), "CoreConfig").GetValue(null, null);
 #endif
             if (coreConfig != null)
-                SetupCategory(coreConfig, null, new BepInPlugin("bepinex.core.config", "BepInEx", "1.0"), btnColors, true);
+                SetupCategory(coreConfig, null, new BepInPlugin("bepinex.core.config", "BepInEx", "1.0"), true);
 
 #if CPP
             foreach (var plugin in IL2CPPChainloader.Instance.Plugins.Values)
             {
                 var configFile = (plugin.Instance as BasePlugin)?.Config;
                 if (configFile != null && configFile.Keys.Any())
-                    SetupCategory(configFile, plugin.Instance, plugin.Metadata, btnColors);
+                    SetupCategory(configFile, plugin.Instance, plugin.Metadata);
             }
 #else
-            if (BepInEx.Bootstrap.Chainloader.PluginInfos == null)
-            {
-                ConfigManager.Log.LogWarning("Chainload pluginInfos is null!");
-                return;
-            }
             foreach (var plugin in BepInEx.Bootstrap.Chainloader.PluginInfos.Values)
             {
                 if (plugin.Instance?.Info?.Metadata == null)
@@ -322,27 +307,24 @@ namespace ConfigManager.UI
 
                 var configFile = plugin.Instance.Config;
                 if (configFile != null && configFile.Keys.Any())
-                    SetupCategory(configFile, plugin.Instance, plugin.Instance.Info.Metadata, btnColors);
+                    SetupCategory(configFile, plugin.Instance, plugin.Instance.Info.Metadata);
             }
 #endif
         }
 
-        internal static void SetupCategory(ConfigFile configFile, object plugin, BepInPlugin meta, ColorBlock btnColors, bool forceAdvanced = false)
+        internal static void SetupCategory(ConfigFile configFile, object plugin, BepInPlugin meta, bool forceAdvanced = false)
         {
             try
             {
-#pragma warning disable IDE0019 // Use pattern matching
 #if CPP
                 var basePlugin = plugin as BasePlugin;
 #else
                 var basePlugin = plugin as BaseUnityPlugin;
 #endif
-#pragma warning restore IDE0019
-
-                if (basePlugin != null)
+                if (!forceAdvanced && basePlugin != null)
                 {
                     var type = basePlugin.GetType();
-                    if (!forceAdvanced && type.GetCustomAttributes(typeof(BrowsableAttribute), false)
+                    if (type.GetCustomAttributes(typeof(BrowsableAttribute), false)
                                               .Cast<BrowsableAttribute>()
                                               .Any(it => !it.Browsable))
                     {
@@ -360,9 +342,11 @@ namespace ConfigManager.UI
                 var btn = UIFactory.CreateButton(CategoryListViewport,
                     "BUTTON_" + meta.GUID,
                     meta.Name,
-                    () => { SetActiveCategory(meta.GUID); },
-                    btnColors);
+                    () => { SetActiveCategory(meta.GUID); });
                 UIFactory.SetLayoutElement(btn.gameObject, flexibleWidth: 9999, minHeight: 30, flexibleHeight: 0);
+
+                RuntimeProvider.Instance.SetColorBlock(btn, _normalInactiveColor, new Color(0.6f, 0.55f, 0.45f),
+                    new Color(0.20f, 0.18f, 0.15f));
 
                 info.listButton = btn;
 

@@ -5,6 +5,8 @@ using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using ConfigManager.UI;
 using System.Linq;
+using ConfigManager.Runtime;
+using ConfigManager.Utility;
 #if CPP
 using UnhollowerRuntimeLib;
 #endif
@@ -182,7 +184,8 @@ namespace ConfigManager.Input
         // UI Input
 
         public Type TInputSystemUIInputModule
-            => m_tUIInputModule ??= ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.UI.InputSystemUIInputModule");
+            => m_tUIInputModule
+            ?? (m_tUIInputModule = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.UI.InputSystemUIInputModule"));
         internal Type m_tUIInputModule;
 
         public BaseInputModule UIModule => m_newInputModule;
@@ -197,17 +200,15 @@ namespace ConfigManager.Input
             }
 
             var assetType = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputActionAsset");
-#if CPP
-            m_newInputModule = UIManager.CanvasRoot.AddComponent(Il2CppType.From(TInputSystemUIInputModule)).TryCast<BaseInputModule>();
-            var asset = ScriptableObject.CreateInstance(Il2CppType.From(assetType));
-#else
-            m_newInputModule = (BaseInputModule)UIManager.CanvasRoot.AddComponent(TInputSystemUIInputModule);
-            var asset = ScriptableObject.CreateInstance(assetType);
-#endif
+            m_newInputModule = RuntimeProvider.Instance.AddComponent<BaseInputModule>(UIManager.CanvasRoot, TInputSystemUIInputModule);
+            var asset = RuntimeProvider.Instance.CreateScriptable(assetType)
+                .Cast(assetType);
+
             inputExtensions = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputActionSetupExtensions");
 
             var addMap = inputExtensions.GetMethod("AddActionMap", new Type[] { assetType, typeof(string) });
-            var map = addMap.Invoke(null, new object[] { asset, "UI" });
+            var map = addMap.Invoke(null, new object[] { asset, "UI" })
+                .Cast(ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputActionMap"));
 
             CreateAction(map, "point", new[] { "<Mouse>/position" }, "point");
             CreateAction(map, "click", new[] { "<Mouse>/leftButton" }, "leftClick");
@@ -225,23 +226,25 @@ namespace ConfigManager.Input
 
         private void CreateAction(object map, string actionName, string[] bindings, string propertyName)
         {
+            var inputActionType = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputAction");
             var addAction = inputExtensions.GetMethod("AddAction");
-            var pointAction = addAction.Invoke(null, new object[] { map, actionName, default, null, null, null, null, null });
+            var action = addAction.Invoke(null, new object[] { map, actionName, default, null, null, null, null, null })
+                .Cast(inputActionType);
 
-            var inputActionType = pointAction.GetType();
             var addBinding = inputExtensions.GetMethod("AddBinding",
                 new Type[] { inputActionType, typeof(string), typeof(string), typeof(string), typeof(string) });
 
             foreach (string binding in bindings)
-                addBinding.Invoke(null, new object[] { pointAction, binding, null, null, null });
+                addBinding.Invoke(null, new object[] { action.Cast(inputActionType), binding, null, null, null });
 
-            var inputRef = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputActionReference")
-                            .GetMethod("Create")
-                            .Invoke(null, new object[] { pointAction });
+            var refType = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputActionReference");
+            var inputRef = refType.GetMethod("Create")
+                            .Invoke(null, new object[] { action })
+                            .Cast(refType);
 
             TInputSystemUIInputModule
                 .GetProperty(propertyName)
-                .SetValue(m_newInputModule, inputRef, null);
+                .SetValue(m_newInputModule.Cast(TInputSystemUIInputModule), inputRef, null);
         }
 
         public void ActivateModule()

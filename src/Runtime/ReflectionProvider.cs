@@ -18,6 +18,8 @@ namespace ConfigManager.Runtime
 
         public abstract object Cast(object obj, Type castTo);
 
+        public abstract T TryCast<T>(object obj);
+
         public abstract bool IsAssignableFrom(Type toAssignTo, Type toAssignFrom);
 
         public abstract bool IsReflectionSupported(Type type);

@@ -43,6 +43,9 @@ namespace ConfigManager
         public static object Cast(this object obj, Type castTo)
             => ReflectionProvider.Instance.Cast(obj, castTo);
 
+        public static T TryCast<T>(this object obj)
+            => ReflectionProvider.Instance.TryCast<T>(obj);
+
         /// <summary>
         /// Check if the provided Type is assignable to IEnumerable.
         /// </summary>
@@ -80,8 +83,8 @@ namespace ConfigManager
             if (ret != null)
                 return ret;
 
-            foreach (var type in from asm in AppDomain.CurrentDomain.GetAssemblies() 
-                                 from type in asm.TryGetTypes() 
+            foreach (var type in from asm in AppDomain.CurrentDomain.GetAssemblies()
+                                 from type in asm.TryGetTypes()
                                  select type)
             {
                 if (type.FullName == fullName)
@@ -189,6 +192,51 @@ namespace ConfigManager
             return s_cachedPropInfos[type][propertyName];
         }
 
+        internal static Dictionary<Type, Dictionary<string, MethodInfo>> s_cachedMethodInfos = new Dictionary<Type, Dictionary<string, MethodInfo>>();
+
+        public static MethodInfo GetMethodInfo(Type type, string methodName, Type[] argumentTypes)
+        {
+            if (!s_cachedMethodInfos.ContainsKey(type))
+                s_cachedMethodInfos.Add(type, new Dictionary<string, MethodInfo>());
+
+            var sig = methodName;
+
+            if (argumentTypes != null)
+            {
+                sig += "(";
+                for (int i = 0; i < argumentTypes.Length; i++)
+                {
+                    if (i > 0)
+                        sig += ",";
+                    sig += argumentTypes[i].FullName;
+                }
+                sig += ")";
+            }
+
+            try
+            {
+                if (!s_cachedMethodInfos[type].ContainsKey(sig))
+                {
+                    if (argumentTypes != null)
+                        s_cachedMethodInfos[type].Add(sig, type.GetMethod(methodName, AllFlags, null, argumentTypes, null));
+                    else
+                        s_cachedMethodInfos[type].Add(sig, type.GetMethod(methodName, AllFlags));
+                }
+
+                return s_cachedMethodInfos[type][sig];
+            }
+            catch (AmbiguousMatchException)
+            {
+                ConfigManager.Log.LogWarning($"AmbiguousMatchException trying to get method '{sig}'");
+                return null;
+            }
+            catch (Exception e)
+            {
+                ConfigManager.Log.LogWarning($"{e.GetType()} trying to get method '{sig}': {e.Message}\r\n{e.StackTrace}");
+                return null;
+            }
+        }
+
         /// <summary>
         /// Helper to display a simple "{ExceptionType}: {Message}" of the exception, and optionally use the inner-most exception.
         /// </summary>
@@ -201,10 +249,9 @@ namespace ConfigManager
             {
                 while (e.InnerException != null)
                 {
-#if CPP
                     if (e.InnerException is System.Runtime.CompilerServices.RuntimeWrappedException)
                         break;
-#endif
+
                     e = e.InnerException;
                 }
             }

@@ -111,7 +111,7 @@ namespace ConfigManager.UI.InteractiveValues
             confirmButton = UIFactory.CreateButton(m_mainContent, "ConfirmButton", "Confirm", ConfirmEndRebind, new Color(0.1f, 0.4f, 0.1f));
             UIFactory.SetLayoutElement(confirmButton.gameObject, minHeight: 25, minWidth: 100);
             confirmButton.gameObject.SetActive(false);
-            confirmButton.colors = RuntimeProvider.Instance.SetColorBlock(confirmButton.colors, disabled: new Color(0.3f, 0.3f, 0.3f));
+            RuntimeProvider.Instance.SetColorBlock(confirmButton, disabled: new Color(0.3f, 0.3f, 0.3f));
 
             cancelButton = UIFactory.CreateButton(m_mainContent, "EndButton", "Cancel", CancelEndRebind, new Color(0.4f, 0.1f, 0.1f));
             UIFactory.SetLayoutElement(cancelButton.gameObject, minHeight: 25, minWidth: 100);
