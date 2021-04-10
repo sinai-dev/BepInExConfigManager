@@ -254,11 +254,12 @@ namespace ConfigManager.UI
 
         public static Button CreateButton(GameObject parent, string name, string text, Action onClick = null, Color? normalColor = null)
         {
-            var btn = CreateButton(parent, name, text, onClick);
+            var colors = new ColorBlock();
+            normalColor = normalColor ?? new Color(0.25f, 0.25f, 0.25f);
 
-            normalColor ??= new Color(0.25f, 0.25f, 0.25f);
-            RuntimeProvider.Instance.SetColorBlock(btn, normalColor, new Color(0.4f, 0.4f, 0.4f),
-                new Color(0.15f, 0.15f, 0.15f));
+            var btn = CreateButton(parent, name, text, onClick, colors);
+
+            RuntimeProvider.Instance.SetColorBlock(btn, normalColor, new Color(0.4f, 0.4f, 0.4f), new Color(0.15f, 0.15f, 0.15f));
 
             return btn;
         }
@@ -277,7 +278,7 @@ namespace ConfigManager.UI
             SetDefaultSelectableColors(button);
 
             colors.colorMultiplier = 1;
-            button.colors = colors;
+            RuntimeProvider.Instance.SetColorBlock(button, colors);
 
             Text textComp = textObj.AddComponent<Text>();
             textComp.text = text;
