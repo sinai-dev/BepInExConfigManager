@@ -36,22 +36,28 @@ namespace ConfigManager
             InputManager.Init();
 
             InitConfig();
-
-            UIFactory.Init();
-            UIManager.Init();
-
-            Log.LogMessage("ConfigManager initialized.");
         }
 
-        private static bool doneSetupCategories;
+        private static float startupDelay = 1f;
+        private static bool doneSetup;
 
         public static void Update()
         {
-            if (!doneSetupCategories)
+            if (startupDelay > 0f)
+                startupDelay -= Time.deltaTime;
+
+            if (startupDelay > 0f)
+                return;
+
+            if (!doneSetup)
             {
+                UIFactory.Init();
+                UIManager.Init();
+
                 ConfigurationEditor.SetupCategories();
 
-                doneSetupCategories = true;
+                Log.LogMessage("ConfigManager initialized.");
+                doneSetup = true;
             }
 
             UIManager.Update();
