@@ -64,7 +64,7 @@ namespace ConfigManager.UI
             if (EventSystem.current != EventSys)
                 CursorUnlocker.SetEventSystem();
 
-            SliderScrollbar.UpdateInstances();
+            AutoSliderScrollbar.UpdateInstances();
         }
 
         private static void CreateRootCanvas()

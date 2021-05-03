@@ -668,56 +668,52 @@ namespace ConfigManager.UI
         /// <summary>
         /// Create a ScrollView element.
         /// </summary>
-        public static GameObject CreateScrollView(GameObject parent, string name, out GameObject content, out SliderScrollbar scroller,
+        public static GameObject CreateAutoScrollView(GameObject parent, string name, out GameObject content, out AutoSliderScrollbar autoScrollbar,
             Color color = default)
         {
-            GameObject mainObj = CreateUIObject("DynamicScrollView", parent);
-
+            GameObject mainObj = CreateUIObject(name, parent);
             SetLayoutElement(mainObj, minWidth: 100, minHeight: 30, flexibleWidth: 5000, flexibleHeight: 5000);
-
+            SetLayoutGroup<HorizontalLayoutGroup>(mainObj, false, true, true, true, 2, childAlignment: TextAnchor.UpperLeft);
+            var mainRect = mainObj.GetComponent<RectTransform>();
+            mainRect.pivot = new Vector2(0, 1);
+            mainRect.anchorMin = Vector2.zero;
+            mainRect.anchorMax = Vector2.one;
             Image mainImage = mainObj.AddComponent<Image>();
             mainImage.type = Image.Type.Filled;
             mainImage.color = (color == default) ? new Color(0.3f, 0.3f, 0.3f, 1f) : color;
 
             GameObject viewportObj = CreateUIObject("Viewport", mainObj);
-
+            UIFactory.SetLayoutElement(viewportObj, minWidth: 100, flexibleWidth: 9999, flexibleHeight: 9999);
             var viewportRect = viewportObj.GetComponent<RectTransform>();
+            viewportRect.pivot = new Vector2(0.0f, 1.0f);
             viewportRect.anchorMin = Vector2.zero;
             viewportRect.anchorMax = Vector2.one;
-            viewportRect.pivot = new Vector2(0.0f, 1.0f);
-            viewportRect.sizeDelta = new Vector2(-15.0f, 0.0f);
-            viewportRect.offsetMax = new Vector2(-20.0f, 0.0f);
-
             viewportObj.AddComponent<Image>().color = Color.white;
             viewportObj.AddComponent<Mask>().showMaskGraphic = false;
+            SetLayoutGroup<VerticalLayoutGroup>(viewportObj, true, true, true, true);
+            //viewportObj.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             content = CreateUIObject("Content", viewportObj);
             var contentRect = content.GetComponent<RectTransform>();
-            contentRect.anchorMin = new Vector2(0.0f, 1.0f);
-            contentRect.anchorMax = new Vector2(1.0f, 1.0f);
             contentRect.pivot = new Vector2(0.0f, 1.0f);
-            contentRect.sizeDelta = new Vector2(5f, 0f);
-            contentRect.offsetMax = new Vector2(0f, 0f);
+            SetLayoutGroup<VerticalLayoutGroup>(content, true, true, true, true, childAlignment: TextAnchor.UpperLeft);
+            SetLayoutElement(content, minWidth: 100, flexibleWidth: 9999, flexibleHeight: 9999);
+            //contentRect.anchorMin = new Vector2(0.0f, 1.0f);
+            //contentRect.anchorMax = new Vector2(1.0f, 1.0f);
             var contentFitter = content.AddComponent<ContentSizeFitter>();
-            contentFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
             contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            //contentFitter.horizontalFit = ContentSizeFitter.FitMode.MinSize;
 
-            SetLayoutGroup<VerticalLayoutGroup>(content, true, true, true, true, 5, 5, 5, 5, 5);
+            // Slider
 
-            GameObject scrollBarObj = CreateUIObject("DynamicScrollbar", mainObj);
+            GameObject scrollBarObj = CreateUIObject("AutoSliderScrollbar", mainObj);
+            SetLayoutGroup<VerticalLayoutGroup>(scrollBarObj, true, true, true, true);
+            SetLayoutElement(scrollBarObj, minWidth: 25, flexibleWidth: 0, flexibleHeight: 9999);
+            scrollBarObj.AddComponent<Image>().color = Color.white;
+            scrollBarObj.AddComponent<Mask>().showMaskGraphic = false;
 
-            var scrollbarLayout = scrollBarObj.AddComponent<VerticalLayoutGroup>();
-            scrollbarLayout.childForceExpandHeight = true;
-            scrollbarLayout.SetChildControlHeight(true);
-
-            RectTransform scrollBarRect = scrollBarObj.GetComponent<RectTransform>();
-            scrollBarRect.anchorMin = new Vector2(1.0f, 0.0f);
-            scrollBarRect.anchorMax = new Vector2(1.0f, 1.0f);
-            scrollBarRect.sizeDelta = new Vector2(15.0f, 0.0f);
-            scrollBarRect.offsetMin = new Vector2(-15.0f, 0.0f);
-
-            GameObject hiddenBar = CreateScrollbar(scrollBarObj, "HiddenScrollviewScroller", out Scrollbar hiddenScroll);
-            hiddenScroll.SetDirection(Scrollbar.Direction.BottomToTop, true);
+            GameObject hiddenBar = CreateScrollbar(scrollBarObj, "HiddenScrollviewScroller", out var hiddenScrollbar);
+            hiddenScrollbar.SetDirection(Scrollbar.Direction.BottomToTop, true);
 
             for (int i = 0; i < hiddenBar.transform.childCount; i++)
             {
@@ -725,14 +721,16 @@ namespace ConfigManager.UI
                 child.gameObject.SetActive(false);
             }
 
-            SliderScrollbar.CreateSliderScrollbar(scrollBarObj, out Slider scrollSlider);
+            CreateSliderScrollbar(scrollBarObj, out Slider scrollSlider);
 
-            // Back to the main scrollview ScrollRect, setting it up now that we have all references.
+            autoScrollbar = new AutoSliderScrollbar(hiddenScrollbar, scrollSlider, contentRect, viewportRect);
+
+            // Set up the ScrollRect component
 
             var scrollRect = mainObj.AddComponent<ScrollRect>();
             scrollRect.horizontal = false;
             scrollRect.vertical = true;
-            scrollRect.verticalScrollbar = hiddenScroll;
+            scrollRect.verticalScrollbar = hiddenScrollbar;
             scrollRect.movementType = ScrollRect.MovementType.Clamped;
             scrollRect.scrollSensitivity = 35;
             scrollRect.horizontalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
@@ -741,8 +739,59 @@ namespace ConfigManager.UI
             scrollRect.viewport = viewportRect;
             scrollRect.content = contentRect;
 
-            // Create a custom DynamicScrollbar module
-            scroller = new SliderScrollbar(hiddenScroll, scrollSlider);
+            return mainObj;
+        }
+
+
+        public static GameObject CreateSliderScrollbar(GameObject parent, out Slider slider)
+        {
+            GameObject mainObj = CreateUIObject("SliderScrollbar", parent, _smallElementSize);
+
+            GameObject bgImageObj = CreateUIObject("Background", mainObj);
+            GameObject handleSlideAreaObj = CreateUIObject("Handle Slide Area", mainObj);
+            GameObject handleObj = CreateUIObject("Handle", handleSlideAreaObj);
+
+            Image bgImage = bgImageObj.AddComponent<Image>();
+            bgImage.type = Image.Type.Sliced;
+            bgImage.color = new Color(0.05f, 0.05f, 0.05f, 1.0f);
+
+            RectTransform bgRect = bgImageObj.GetComponent<RectTransform>();
+            bgRect.pivot = new Vector2(0, 1);
+            bgRect.anchorMin = Vector2.zero;
+            bgRect.anchorMax = Vector2.one;
+            bgRect.sizeDelta = Vector2.zero;
+            bgRect.offsetMax = new Vector2(0f, 0f);
+
+            RectTransform handleSlideRect = handleSlideAreaObj.GetComponent<RectTransform>();
+            handleSlideRect.anchorMin = Vector3.zero;
+            handleSlideRect.anchorMax = Vector3.one;
+            handleSlideRect.pivot = new Vector3(0.5f, 0.5f);
+
+            Image handleImage = handleObj.AddComponent<Image>();
+            handleImage.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+
+            var handleRect = handleObj.GetComponent<RectTransform>();
+            handleRect.pivot = new Vector2(0.5f, 0.5f);
+            UIFactory.SetLayoutElement(handleObj, minWidth: 21, flexibleWidth: 0);
+
+            var sliderBarLayout = mainObj.AddComponent<LayoutElement>();
+            sliderBarLayout.minWidth = 25;
+            sliderBarLayout.flexibleWidth = 0;
+            sliderBarLayout.minHeight = 30;
+            sliderBarLayout.flexibleHeight = 5000;
+
+            slider = mainObj.AddComponent<Slider>();
+            slider.handleRect = handleObj.GetComponent<RectTransform>();
+            slider.targetGraphic = handleImage;
+            slider.direction = Slider.Direction.TopToBottom;
+
+            SetLayoutElement(mainObj, minWidth: 25, flexibleWidth: 0, flexibleHeight: 9999);
+
+            RuntimeProvider.Instance.SetColorBlock(slider,
+                new Color(0.4f, 0.4f, 0.4f),
+                new Color(0.5f, 0.5f, 0.5f),
+                new Color(0.3f, 0.3f, 0.3f),
+                new Color(0.5f, 0.5f, 0.5f));
 
             return mainObj;
         }

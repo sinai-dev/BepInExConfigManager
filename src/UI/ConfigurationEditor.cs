@@ -271,11 +271,11 @@ namespace ConfigManager.UI
         {
             var horiGroup = UIFactory.CreateHorizontalGroup(mainContent, "Main", true, true, true, true, 2, default, new Color(0.08f, 0.08f, 0.08f));
 
-            var ctgList = UIFactory.CreateScrollView(horiGroup, "CategoryList", out GameObject ctgViewport, out _, new Color(0.1f, 0.1f, 0.1f));
+            var ctgList = UIFactory.CreateAutoScrollView(horiGroup, "CategoryList", out GameObject ctgViewport, out _, new Color(0.1f, 0.1f, 0.1f));
             UIFactory.SetLayoutElement(ctgList, minWidth: 300, flexibleWidth: 0);
             CategoryListViewport = ctgViewport;
 
-            var editor = UIFactory.CreateScrollView(horiGroup, "ConfigEditor", out GameObject editorViewport, out _, new Color(0.05f, 0.05f, 0.05f));
+            var editor = UIFactory.CreateAutoScrollView(horiGroup, "ConfigEditor", out GameObject editorViewport, out _, new Color(0.05f, 0.05f, 0.05f));
             UIFactory.SetLayoutElement(editor, flexibleWidth: 9999);
             ConfigEditorViewport = editorViewport;
         }
