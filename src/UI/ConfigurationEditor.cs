@@ -47,8 +47,8 @@ namespace ConfigManager.UI
         public static bool ShowHiddenConfigs { get; internal set; }
 
         internal static GameObject MainPanel;
-        internal static GameObject CategoryListViewport;
-        internal static GameObject ConfigEditorViewport;
+        internal static GameObject CategoryListContent;
+        internal static GameObject ConfigEditorContent;
 
         internal static string Filter => currentFilter ?? "";
         private static string currentFilter;
@@ -271,13 +271,14 @@ namespace ConfigManager.UI
         {
             var horiGroup = UIFactory.CreateHorizontalGroup(mainContent, "Main", true, true, true, true, 2, default, new Color(0.08f, 0.08f, 0.08f));
 
-            var ctgList = UIFactory.CreateAutoScrollView(horiGroup, "CategoryList", out GameObject ctgViewport, out _, new Color(0.1f, 0.1f, 0.1f));
+            var ctgList = UIFactory.CreateAutoScrollView(horiGroup, "CategoryList", out GameObject ctgContent, out _, new Color(0.1f, 0.1f, 0.1f));
             UIFactory.SetLayoutElement(ctgList, minWidth: 300, flexibleWidth: 0);
-            CategoryListViewport = ctgViewport;
+            CategoryListContent = ctgContent;
+            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(ctgContent, spacing: 3);
 
-            var editor = UIFactory.CreateAutoScrollView(horiGroup, "ConfigEditor", out GameObject editorViewport, out _, new Color(0.05f, 0.05f, 0.05f));
+            var editor = UIFactory.CreateAutoScrollView(horiGroup, "ConfigEditor", out GameObject editorContent, out _, new Color(0.05f, 0.05f, 0.05f));
             UIFactory.SetLayoutElement(editor, flexibleWidth: 9999);
-            ConfigEditorViewport = editorViewport;
+            ConfigEditorContent = editorContent;
         }
 
         // wait for end of chainloader setup. mods that set up preferences after this aren't compatible atm.
@@ -339,7 +340,7 @@ namespace ConfigManager.UI
 
                 // List button
 
-                var btn = UIFactory.CreateButton(CategoryListViewport,
+                var btn = UIFactory.CreateButton(CategoryListContent,
                     "BUTTON_" + meta.GUID,
                     meta.Name,
                     () => { SetActiveCategory(meta.GUID); });
@@ -352,7 +353,7 @@ namespace ConfigManager.UI
 
                 // Editor content
 
-                var content = UIFactory.CreateVerticalGroup(ConfigEditorViewport, "CATEGORY_" + meta.GUID,
+                var content = UIFactory.CreateVerticalGroup(ConfigEditorContent, "CATEGORY_" + meta.GUID,
                     true, false, true, true, 4, default, new Color(0.05f, 0.05f, 0.05f));
 
                 var dict = new Dictionary<string, List<ConfigEntryBase>>
