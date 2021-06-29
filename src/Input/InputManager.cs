@@ -33,24 +33,7 @@ namespace ConfigManager.Input
 
         public static void Init()
         {
-            if (InputSystem.TKeyboard != null || (ReflectionUtility.LoadModule("Unity.InputSystem") && InputSystem.TKeyboard != null))
-            {
-                m_inputModule = new InputSystem();
-                CurrentType = InputType.InputSystem;
-            }
-            else if (LegacyInput.TInput != null || (ReflectionUtility.LoadModule("UnityEngine.InputLegacyModule") && LegacyInput.TInput != null))
-            {
-                m_inputModule = new LegacyInput();
-                CurrentType = InputType.Legacy;
-            }
-
-            if (m_inputModule == null)
-            {
-                ConfigManager.Log.LogWarning("Could not find any Input module!");
-                m_inputModule = new NoInput();
-                CurrentType = InputType.None;
-                return;
-            }
+            InitHandler();
 
             var keycodes = Enum.GetValues(typeof(KeyCode));
             var list = new List<KeyCode>();
@@ -63,6 +46,40 @@ namespace ConfigManager.Input
             allKeycodes = list.ToArray();
 
             CursorUnlocker.Init();
+        }
+
+        private static void InitHandler()
+        {
+            if (LegacyInput.TInput != null || (ReflectionUtility.LoadModule("UnityEngine.InputLegacyModule") && LegacyInput.TInput != null))
+            {
+                try
+                {
+                    m_inputModule = new LegacyInput();
+                    CurrentType = InputType.Legacy;
+
+                    // make sure its working
+                    GetKeyDown(KeyCode.F5);
+
+                    ConfigManager.Log.LogMessage("Initialized Legacy Input support");
+                    return;
+                }
+                catch
+                {
+                    // It's not working, we'll fall back to InputSystem.
+                }
+            }
+
+            if (InputSystem.TKeyboard != null || (ReflectionUtility.LoadModule("Unity.InputSystem") && InputSystem.TKeyboard != null))
+            {
+                m_inputModule = new InputSystem();
+                CurrentType = InputType.InputSystem;
+                return;
+            }
+
+            ConfigManager.Log.LogError("Fatal error - could not load any Input module!");
+            m_inputModule = new NoInput();
+            CurrentType = InputType.None;
+            return;
         }
 
         public static bool GetKeyDown(KeyCode key)
