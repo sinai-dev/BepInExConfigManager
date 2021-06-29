@@ -17,7 +17,6 @@ namespace ConfigManager.Runtime.Mono
         public override void Initialize()
         {
             Reflection = new MonoReflection();
-            TextureUtil = new MonoTextureUtil();
         }
 
         public override void SetColorBlock(Selectable selectable, Color? normal = null, Color? highlighted = null, Color? pressed = null,

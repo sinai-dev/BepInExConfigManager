@@ -14,7 +14,6 @@ namespace ConfigManager.Runtime
         public static RuntimeProvider Instance;
 
         public ReflectionProvider Reflection;
-        public TextureUtilProvider TextureUtil;
 
         public RuntimeProvider()
         {

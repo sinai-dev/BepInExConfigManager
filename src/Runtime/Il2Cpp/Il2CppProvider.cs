@@ -23,7 +23,6 @@ namespace ConfigManager.Runtime.Il2Cpp
         public override void Initialize()
         {
             Reflection = new Il2CppReflection();
-            TextureUtil = new Il2CppTextureUtil();
         }
 
         // Unity API Handlers

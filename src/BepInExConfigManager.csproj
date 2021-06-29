@@ -11,6 +11,7 @@
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <LangVersion>8.0</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <!-- CONFIGURATIONS -->
   <!-- IL2CPP -->
@@ -123,13 +124,10 @@
     <Compile Include="Runtime\Il2Cpp\Il2CppCoroutine.cs" />
     <Compile Include="Runtime\Il2Cpp\Il2CppProvider.cs" />
     <Compile Include="Runtime\Il2Cpp\Il2CppReflection.cs" />
-    <Compile Include="Runtime\Il2Cpp\Il2CppTextureUtil.cs" />
     <Compile Include="Runtime\Mono\MonoProvider.cs" />
     <Compile Include="Runtime\Mono\MonoReflection.cs" />
-    <Compile Include="Runtime\Mono\MonoTextureUtil.cs" />
     <Compile Include="Runtime\ReflectionProvider.cs" />
     <Compile Include="Runtime\RuntimeProvider.cs" />
-    <Compile Include="Runtime\TextureUtilProvider.cs" />
     <Compile Include="UI\CachedConfigEntry.cs" />
     <Compile Include="UI\InteractiveValues\InteractiveBool.cs" />
     <Compile Include="UI\InteractiveValues\InteractiveColor.cs" />
