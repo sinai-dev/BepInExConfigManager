@@ -4,6 +4,8 @@ In-game UI for managing BepInEx Configurations, for IL2CPP and Mono Unity games.
 
 Requires BepInEx 6 for IL2CPP, and BepInEx 5 for Mono.
 
+✨ Powered by [UniverseLib](https://github.com/sinai-dev/UniverseLib)
+
 ## Releases [![](https://img.shields.io/github/release/sinai-dev/BepInExConfigManager.svg?label=release%20notes)](../../releases/latest)
 
 * [Download (IL2CPP)](https://github.com/sinai-dev/BepInExConfigManager/releases/latest/download/BepInExConfigManager.Il2Cpp.zip)
@@ -16,6 +18,18 @@ Requires BepInEx 6 for IL2CPP, and BepInEx 5 for Mono.
 * You can change the keybinding under the `BepInExConfigManager` category in the Menu, or by editing the file `BepInEx\config\com.sinai.BepInExConfigManager.cfg`.
 
 [![](img/preview.png)](https://raw.githubusercontent.com/sinai-dev/BepInExConfigManager/master/img/preview.png)
+
+## Common issues and solutions
+
+Although this tool should work out of the box for most Unity games, in some cases you may need to tweak the settings for it to work properly.
+
+To adjust the settings, open the config file: `BepInEx\config\com.sinai.bepinexconfigmanager.cfg`
+
+Try adjusting the following settings and see if it fixes your issues:
+* `Startup_Delay_Time` - increase to 5-10 seconds (or more as needed), can fix issues with UnityExplorer being destroyed or corrupted during startup.
+* `Disable_EventSystem_Override` - if input is not working properly, try setting this to `true`.
+
+If these fixes do not work, please create an issue in this repo and I'll do my best to look into it.
 
 ## Info for developers
 
