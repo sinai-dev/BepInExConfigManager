@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using ConfigManager.UI;
+using UniverseLib.UI;
 
 namespace ConfigManager.UI.InteractiveValues
 {

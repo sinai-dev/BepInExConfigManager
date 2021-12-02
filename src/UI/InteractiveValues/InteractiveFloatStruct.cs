@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using ConfigManager.UI;
 using System.Reflection;
+using UniverseLib.UI;
 
 namespace ConfigManager.UI.InteractiveValues
 {
@@ -157,13 +158,12 @@ namespace ConfigManager.UI.InteractiveValues
                 var label = UIFactory.CreateLabel(row, "RowLabel", $"{name}:", TextAnchor.MiddleRight, Color.cyan);
                 UIFactory.SetLayoutElement(label.gameObject, minWidth: 30, flexibleWidth: 0, minHeight: 25);
 
-                var inputFieldObj = UIFactory.CreateInputField(row, "InputField", "...", 14, 3, 1);
-                UIFactory.SetLayoutElement(inputFieldObj, minWidth: 120, minHeight: 25, flexibleWidth: 0);
+                var inputField = UIFactory.CreateInputField(row, "InputField", "...");
+                UIFactory.SetLayoutElement(inputField.Component.gameObject, minWidth: 120, minHeight: 25, flexibleWidth: 0);
 
-                var inputField = inputFieldObj.GetComponent<InputField>();
-                m_inputs[index] = inputField;
+                m_inputs[index] = inputField.Component;
 
-                inputField.onValueChanged.AddListener((string val) =>
+                inputField.OnValueChanged += (string val) =>
                 {
                     try
                     {
@@ -172,7 +172,7 @@ namespace ConfigManager.UI.InteractiveValues
                         Owner.SetValueFromIValue();
                     }
                     catch { }
-                });
+                };
             }
             catch (Exception ex)
             {

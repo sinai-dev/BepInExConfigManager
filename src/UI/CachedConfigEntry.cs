@@ -5,9 +5,10 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using ConfigManager.UI.InteractiveValues;
-using ConfigManager.UI.Utility;
 using System.Reflection;
 using BepInEx.Configuration;
+using UniverseLib;
+using UniverseLib.UI;
 
 namespace ConfigManager.UI
 {
@@ -101,7 +102,7 @@ namespace ConfigManager.UI
             else
             {
                 EditedValue = IValue.Value;
-                ConfigurationEditor.OnEntryEdit(this);
+                UIManager.OnEntryEdit(this);
                 m_undoButton.SetActive(true);
             }
         }
@@ -125,7 +126,7 @@ namespace ConfigManager.UI
         internal void OnSaveOrUndo()
         {
             m_undoButton.SetActive(false);
-            ConfigurationEditor.OnEntrySaveOrUndo(this);
+            UIManager.OnEntrySaveOrUndo(this);
         }
 
         public void Enable()
@@ -173,20 +174,22 @@ namespace ConfigManager.UI
 
             m_mainLabel = UIFactory.CreateLabel(horiGroup, "ConfigLabel", this.RefConfig.Definition.Key, TextAnchor.MiddleLeft, 
                 new Color(0.9f, 0.9f, 0.7f));
-            m_mainLabel.text += $" <i>({SignatureHighlighter.ParseFullSyntax(RefConfig.SettingType, false)})</i>";
+            m_mainLabel.text += $" <i>({SignatureHighlighter.Parse(RefConfig.SettingType, false)})</i>";
             UIFactory.SetLayoutElement(m_mainLabel.gameObject, minWidth: 200, minHeight: 22, flexibleWidth: 9999, flexibleHeight: 0);
 
             // Undo button
 
-            var undoButton = UIFactory.CreateButton(horiGroup, "UndoButton", "Undo", UndoEdits, new Color(0.3f, 0.3f, 0.3f));
-            m_undoButton = undoButton.gameObject;
+            var undoButton = UIFactory.CreateButton(horiGroup, "UndoButton", "Undo", new Color(0.3f, 0.3f, 0.3f));
+            undoButton.OnClick += UndoEdits;
+            m_undoButton = undoButton.Component.gameObject;
             m_undoButton.SetActive(false);
             UIFactory.SetLayoutElement(m_undoButton, minWidth: 80, minHeight: 22, flexibleWidth: 0);
 
             // Default button
 
-            var defaultButton = UIFactory.CreateButton(horiGroup, "DefaultButton", "Default", RevertToDefault, new Color(0.3f, 0.3f, 0.3f));
-            UIFactory.SetLayoutElement(defaultButton.gameObject, minWidth: 80, minHeight: 22, flexibleWidth: 0);
+            var defaultButton = UIFactory.CreateButton(horiGroup, "DefaultButton", "Default", new Color(0.3f, 0.3f, 0.3f));
+            defaultButton.OnClick += RevertToDefault;
+            UIFactory.SetLayoutElement(defaultButton.Component.gameObject, minWidth: 80, minHeight: 22, flexibleWidth: 0);
 
             // Description label
 

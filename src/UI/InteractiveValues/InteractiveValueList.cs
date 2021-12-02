@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using ConfigManager.UI;
 using System.Collections;
+using UniverseLib.UI;
 
 namespace ConfigManager.UI.InteractiveValues
 {

@@ -6,7 +6,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 using ConfigManager.UI;
-using ConfigManager.UI.Utility;
+using UniverseLib.UI;
 
 namespace ConfigManager.UI.InteractiveValues
 {
@@ -14,7 +14,7 @@ namespace ConfigManager.UI.InteractiveValues
     {
         public InteractiveString(object value, Type valueType) : base(value, valueType) { }
 
-        internal InputField m_valueInput;
+        internal InputFieldRef m_valueInput;
         internal GameObject m_hiddenObj;
         internal Text m_placeholderText;
 
@@ -31,7 +31,7 @@ namespace ConfigManager.UI.InteractiveValues
                 if (toString.Length > 15000)
                     toString = toString.Substring(0, 15000);
 
-                m_valueInput.text = toString;
+                m_valueInput.Text = toString;
                 m_placeholderText.text = toString;
             }
             else
@@ -40,14 +40,14 @@ namespace ConfigManager.UI.InteractiveValues
                             ? "null" 
                             : "empty";
 
-                m_valueInput.text = "";
+                m_valueInput.Text = "";
                 m_placeholderText.text = s;
             }
         }
 
         internal void SetValueFromInput()
         {
-            Value = m_valueInput.text;
+            Value = m_valueInput.Text;
             Owner.SetValueFromIValue();
         }
 
@@ -67,23 +67,22 @@ namespace ConfigManager.UI.InteractiveValues
             UIFactory.SetLayoutElement(m_hiddenObj, minHeight: 25, flexibleHeight: 500, minWidth: 250, flexibleWidth: 9000);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(m_hiddenObj, true, true, true, true);
 
-            var inputObj = UIFactory.CreateInputField(m_hiddenObj, "StringInputField", "...", 14, 3);
-            UIFactory.SetLayoutElement(inputObj, minWidth: 120, minHeight: 25, flexibleWidth: 5000, flexibleHeight: 5000);
+            m_valueInput = UIFactory.CreateInputField(m_hiddenObj, "StringInputField", "...");
+            UIFactory.SetLayoutElement(m_valueInput.Component.gameObject, minWidth: 120, minHeight: 25, flexibleWidth: 5000, flexibleHeight: 5000);
 
-            m_valueInput = inputObj.GetComponent<InputField>();
-            m_valueInput.lineType = InputField.LineType.MultiLineNewline;
+            m_valueInput.Component.lineType = InputField.LineType.MultiLineNewline;
 
-            m_placeholderText = m_valueInput.placeholder.GetComponent<Text>();
+            m_placeholderText = m_valueInput.Component.placeholder.GetComponent<Text>();
 
             m_placeholderText.supportRichText = false;
-            m_valueInput.textComponent.supportRichText = false;
+            m_valueInput.Component.textComponent.supportRichText = false;
 
-            m_valueInput.onValueChanged.AddListener((string val) =>
+            m_valueInput.OnValueChanged += (string val) =>
             {
                 hiddenText.text = val ?? "";
                 LayoutRebuilder.ForceRebuildLayoutImmediate(Owner.ContentRect);
                 SetValueFromInput();
-            });
+            };
 
             RefreshUIForValue();
         }

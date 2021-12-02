@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using UniverseLib.UI;
 
 namespace ConfigManager.UI.InteractiveValues
 {
@@ -96,16 +97,15 @@ namespace ConfigManager.UI.InteractiveValues
             var label = UIFactory.CreateLabel(row, "RowLabel", $"{s_fieldNames[index]}:", TextAnchor.MiddleRight, Color.cyan);
             UIFactory.SetLayoutElement(label.gameObject, minWidth: 17, flexibleWidth: 0, minHeight: 25);
 
-            var inputFieldObj = UIFactory.CreateInputField(row, "InputField", "...", 14, 3, 1);
-            UIFactory.SetLayoutElement(inputFieldObj, minWidth: 40, minHeight: 25, flexibleWidth: 0);
+            var inputField = UIFactory.CreateInputField(row, "InputField", "...");
+            UIFactory.SetLayoutElement(inputField.Component.gameObject, minWidth: 40, minHeight: 25, flexibleWidth: 0);
 
-            var inputField = inputFieldObj.GetComponent<InputField>();
-            m_inputs[index] = inputField;
-            inputField.characterValidation = Value is Color
+            m_inputs[index] = inputField.Component;
+            inputField.Component.characterValidation = Value is Color
                                              ? InputField.CharacterValidation.Decimal
                                              : InputField.CharacterValidation.Integer; // color32 uses byte
 
-            inputField.onValueChanged.AddListener((string value) =>
+            inputField.OnValueChanged += (string value) =>
             {
                 if (Value is Color)
                 {
@@ -119,7 +119,7 @@ namespace ConfigManager.UI.InteractiveValues
                     SetValueToColor32(val);
                     m_sliders[index].value = val;
                 }
-            });
+            };
 
             var sliderObj = UIFactory.CreateSlider(row, "Slider", out Slider slider);
             m_sliders[index] = slider;
@@ -143,13 +143,13 @@ namespace ConfigManager.UI.InteractiveValues
                     if (Value is Color32)
                     {
                         var val = ((byte)value).ToString();
-                        inputField.text = val;
+                        inputField.Text = val;
                         SetValueToColor32((byte)value);
                         m_inputs[index].text = val;
                     }
                     else
                     {
-                        inputField.text = value.ToString();
+                        inputField.Text = value.ToString();
                         SetValueToColor(value);
                         m_inputs[index].text = value.ToString();
                     }

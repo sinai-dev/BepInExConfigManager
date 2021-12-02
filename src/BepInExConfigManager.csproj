@@ -12,6 +12,8 @@
     <Deterministic>true</Deterministic>
     <LangVersion>8.0</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <!-- CONFIGURATIONS -->
   <!-- IL2CPP -->
@@ -21,6 +23,7 @@
     <DefineConstants>CPP</DefineConstants>
     <AssemblyName>BepInExConfigManager.Il2Cpp</AssemblyName>
     <IsCpp>true</IsCpp>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <!-- MONO -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_Mono|AnyCPU' ">
@@ -30,6 +33,7 @@
     <AssemblyName>BepInExConfigManager.Mono</AssemblyName>
     <Prefer32Bit>false</Prefer32Bit>
     <IsCpp>false</IsCpp>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
@@ -57,9 +61,15 @@
       <HintPath>..\lib\mono\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="UniverseLib.Mono">
+      <HintPath>packages\UniverseLib.1.0.1\lib\net35\UniverseLib.Mono.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <!-- Il2Cpp refs -->
   <ItemGroup Condition="'$(IsCpp)'=='true'">
+    <Reference Include="UniverseLib.IL2CPP">
+      <HintPath>packages\UniverseLib.1.0.1\lib\net472\UniverseLib.IL2CPP.dll</HintPath>
+    </Reference>
     <Reference Include="BepInEx.Core">
       <HintPath>..\lib\BepInEx.Core.dll</HintPath>
       <Private>False</Private>
@@ -110,24 +120,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Input\CursorUnlocker.cs" />
-    <Compile Include="Input\IHandleInput.cs" />
-    <Compile Include="Input\InputManager.cs" />
-    <Compile Include="Input\InputSystem.cs" />
-    <Compile Include="Input\LegacyInput.cs" />
-    <Compile Include="Input\NoInput.cs" />
     <Compile Include="ConfigManager.cs" />
     <Compile Include="ConfigManagerPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Runtime\Il2Cpp\AssetBundle.cs" />
-    <Compile Include="Runtime\Il2Cpp\ICallManager.cs" />
-    <Compile Include="Runtime\Il2Cpp\Il2CppCoroutine.cs" />
-    <Compile Include="Runtime\Il2Cpp\Il2CppProvider.cs" />
-    <Compile Include="Runtime\Il2Cpp\Il2CppReflection.cs" />
-    <Compile Include="Runtime\Mono\MonoProvider.cs" />
-    <Compile Include="Runtime\Mono\MonoReflection.cs" />
-    <Compile Include="Runtime\ReflectionProvider.cs" />
-    <Compile Include="Runtime\RuntimeProvider.cs" />
     <Compile Include="UI\CachedConfigEntry.cs" />
     <Compile Include="UI\InteractiveValues\InteractiveBool.cs" />
     <Compile Include="UI\InteractiveValues\InteractiveColor.cs" />
@@ -139,19 +134,12 @@
     <Compile Include="UI\InteractiveValues\InteractiveTomlObject.cs" />
     <Compile Include="UI\InteractiveValues\InteractiveFloatStruct.cs" />
     <Compile Include="UI\InteractiveValues\InteractiveValue.cs" />
-    <Compile Include="UI\ConfigurationEditor.cs" />
-    <Compile Include="UI\InteractiveValues\InteractiveValueList.cs" />
-    <Compile Include="UI\UIFactory.cs" />
     <Compile Include="UI\UIManager.cs" />
-    <Compile Include="UI\Utility\SignatureHighlighter.cs" />
-    <Compile Include="UI\Utility\SliderScrollbar.cs" />
-    <Compile Include="Utility\ConfigurationManagerAttributes.cs" />
-    <Compile Include="Utility\UnityHelpers.cs" />
-    <Compile Include="Utility\ReflectionUtility.cs" />
+    <Compile Include="UI\InteractiveValues\InteractiveValueList.cs" />
+    <Compile Include="Attributes\ConfigurationManagerAttributes.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\legacy.bundle" />
-    <EmbeddedResource Include="Resources\modern.bundle" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

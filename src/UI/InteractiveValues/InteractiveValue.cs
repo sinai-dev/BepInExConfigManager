@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using UniverseLib;
+using UniverseLib.UI;
 
 namespace ConfigManager.UI.InteractiveValues
 {
@@ -56,7 +58,7 @@ namespace ConfigManager.UI.InteractiveValues
 
         public static InteractiveValue Create(object value, Type fallbackType)
         {
-            var type = ReflectionUtility.GetActualType(value) ?? fallbackType;
+            var type = value.GetActualType() ?? fallbackType;
             var iType = GetIValueForType(type);
 
             return (InteractiveValue)Activator.CreateInstance(iType, new object[] { value, type });
@@ -87,7 +89,7 @@ namespace ConfigManager.UI.InteractiveValues
 
         protected internal GameObject m_mainContent;
 
-        protected internal Button m_subExpandBtn;
+        protected internal ButtonRef m_subExpandBtn;
         protected internal bool m_subContentConstructed;
 
         public virtual void OnValueUpdated()
@@ -106,8 +108,8 @@ namespace ConfigManager.UI.InteractiveValues
         {
             if (HasSubContent)
             {
-                if (m_subExpandBtn.gameObject.activeSelf != SubContentWanted)
-                    m_subExpandBtn.gameObject.SetActive(SubContentWanted);
+                if (m_subExpandBtn.Component.gameObject.activeSelf != SubContentWanted)
+                    m_subExpandBtn.Component.gameObject.SetActive(SubContentWanted);
 
                 if (!SubContentWanted && m_subContentParent.activeSelf)
                     ToggleSubcontent();
@@ -140,12 +142,12 @@ namespace ConfigManager.UI.InteractiveValues
             {
                 this.m_subContentParent.SetActive(true);
                 this.m_subContentParent.transform.SetAsLastSibling();
-                m_subExpandBtn.GetComponentInChildren<Text>().text = "▼ Click to hide";
+                m_subExpandBtn.ButtonText.text = "▼ Click to hide";
             }
             else
             {
                 this.m_subContentParent.SetActive(false);
-                m_subExpandBtn.GetComponentInChildren<Text>().text = "▲ Expand to edit";
+                m_subExpandBtn.ButtonText.text = "▲ Expand to edit";
             }
 
             OnToggleSubcontent(m_subContentParent.activeSelf);
@@ -174,10 +176,9 @@ namespace ConfigManager.UI.InteractiveValues
             // subcontent expand button
             if (HasSubContent)
             {
-                m_subExpandBtn = UIFactory.CreateButton(m_mainContent, "ExpandSubcontentButton", 
-                    "▲ Expand to edit", ToggleSubcontent, new Color(0.3f, 0.3f, 0.3f));
-
-                UIFactory.SetLayoutElement(m_subExpandBtn.gameObject, minHeight: 25, minWidth: 120, flexibleWidth: 0, flexibleHeight: 0);
+                m_subExpandBtn = UIFactory.CreateButton(m_mainContent, "ExpandSubcontentButton", "▲ Expand to edit", new Color(0.3f, 0.3f, 0.3f));
+                m_subExpandBtn.OnClick += ToggleSubcontent;
+                UIFactory.SetLayoutElement(m_subExpandBtn.Component.gameObject, minHeight: 25, minWidth: 120, flexibleWidth: 0, flexibleHeight: 0);
             }
         }
     }

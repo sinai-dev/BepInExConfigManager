@@ -1,22 +1,23 @@
-﻿using ConfigManager.Input;
-using ConfigManager.Runtime;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using UniverseLib;
+using UniverseLib.Input;
+using UniverseLib.UI;
 
 namespace ConfigManager.UI.InteractiveValues
 {
     public class InteractiveKeycode : InteractiveValue
     {
         internal Text labelText;
-        internal Button rebindButton;
-        internal Button confirmButton;
-        internal Button cancelButton;
+        internal ButtonRef rebindButton;
+        internal ButtonRef confirmButton;
+        internal ButtonRef cancelButton;
 
-        private bool isInputSystem;
+        private readonly bool isInputSystem;
 
         public InteractiveKeycode(object value, Type valueType) : base(value, valueType)
         {
@@ -39,10 +40,10 @@ namespace ConfigManager.UI.InteractiveValues
 
         public void BeginRebind()
         {
-            rebindButton.gameObject.SetActive(false);
-            confirmButton.gameObject.SetActive(true);
-            confirmButton.interactable = false;
-            cancelButton.gameObject.SetActive(true);
+            rebindButton.Component.gameObject.SetActive(false);
+            confirmButton.Component.gameObject.SetActive(true);
+            confirmButton.Component.interactable = false;
+            cancelButton.Component.gameObject.SetActive(true);
 
             labelText.text = "<i>Press a key...</i>";
 
@@ -57,11 +58,11 @@ namespace ConfigManager.UI.InteractiveValues
             }
             else
             {
-                object key = InputSystem.KeyCodeToKeyEnumDict[kc];
+                object key = InputSystem.KeyCodeToKeyEnum(kc);
                 labelText.text = $"<i>{key.ToString()}</i>";
             }
 
-            confirmButton.interactable = true;
+            confirmButton.Component.interactable = true;
         }
 
         private void OnKeycodeConfirmed(KeyCode? kc)
@@ -71,7 +72,7 @@ namespace ConfigManager.UI.InteractiveValues
                 if (!isInputSystem)
                     Value = kc;
                 else
-                    Value = InputSystem.KeyCodeToKeyEnumDict[(KeyCode)kc];
+                    Value = InputSystem.KeyCodeToKeyEnum(kc.Value);
             }
 
             Owner.SetValueFromIValue();
@@ -93,9 +94,9 @@ namespace ConfigManager.UI.InteractiveValues
 
         internal void OnRebindEnd()
         {
-            rebindButton.gameObject.SetActive(true);
-            confirmButton.gameObject.SetActive(false);
-            cancelButton.gameObject.SetActive(false);
+            rebindButton.Component.gameObject.SetActive(true);
+            confirmButton.Component.gameObject.SetActive(false);
+            cancelButton.Component.gameObject.SetActive(false);
         }
 
         public override void ConstructUI(GameObject parent)
@@ -105,17 +106,20 @@ namespace ConfigManager.UI.InteractiveValues
             labelText = UIFactory.CreateLabel(m_mainContent, "Label", Value?.ToString() ?? "<notset>", TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(labelText.gameObject, minWidth: 150, minHeight: 25);
 
-            rebindButton = UIFactory.CreateButton(m_mainContent, "RebindButton", "Rebind", BeginRebind);
-            UIFactory.SetLayoutElement(rebindButton.gameObject, minHeight: 25, minWidth: 100);
+            rebindButton = UIFactory.CreateButton(m_mainContent, "RebindButton", "Rebind");
+            rebindButton.OnClick += BeginRebind;
+            UIFactory.SetLayoutElement(rebindButton.Component.gameObject, minHeight: 25, minWidth: 100);
 
-            confirmButton = UIFactory.CreateButton(m_mainContent, "ConfirmButton", "Confirm", ConfirmEndRebind, new Color(0.1f, 0.4f, 0.1f));
-            UIFactory.SetLayoutElement(confirmButton.gameObject, minHeight: 25, minWidth: 100);
-            confirmButton.gameObject.SetActive(false);
-            RuntimeProvider.Instance.SetColorBlock(confirmButton, disabled: new Color(0.3f, 0.3f, 0.3f));
+            confirmButton = UIFactory.CreateButton(m_mainContent, "ConfirmButton", "Confirm", new Color(0.1f, 0.4f, 0.1f));
+            confirmButton.OnClick += ConfirmEndRebind;
+            UIFactory.SetLayoutElement(confirmButton.Component.gameObject, minHeight: 25, minWidth: 100);
+            confirmButton.Component.gameObject.SetActive(false);
+            RuntimeProvider.Instance.SetColorBlock(confirmButton.Component, disabled: new Color(0.3f, 0.3f, 0.3f));
 
-            cancelButton = UIFactory.CreateButton(m_mainContent, "EndButton", "Cancel", CancelEndRebind, new Color(0.4f, 0.1f, 0.1f));
-            UIFactory.SetLayoutElement(cancelButton.gameObject, minHeight: 25, minWidth: 100);
-            cancelButton.gameObject.SetActive(false);
+            cancelButton = UIFactory.CreateButton(m_mainContent, "EndButton", "Cancel", new Color(0.4f, 0.1f, 0.1f));
+            cancelButton.OnClick += CancelEndRebind;
+            UIFactory.SetLayoutElement(cancelButton.Component.gameObject, minHeight: 25, minWidth: 100);
+            cancelButton.Component.gameObject.SetActive(false);
         }
     }
 }

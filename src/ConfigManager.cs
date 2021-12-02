@@ -9,12 +9,11 @@ using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using ConfigManager;
-using ConfigManager.Input;
-using ConfigManager.Runtime;
 using ConfigManager.UI;
 using UnityEngine;
 using HarmonyLib;
 using ConfigManager.Utility;
+using UniverseLib.Input;
 
 namespace ConfigManager
 {
@@ -28,40 +27,34 @@ namespace ConfigManager
         internal static string CTG = "Settings";
         internal static ConfigEntry<KeyCode> Main_Menu_Toggle;
         internal static ConfigEntry<bool> Auto_Save_Configs;
-        internal static ConfigEntry<float> UI_Scale;
+        //internal static ConfigEntry<float> UI_Scale;
+        internal static ConfigEntry<float> Startup_Delay;
+        internal static ConfigEntry<bool> Disable_EventSystem_Override;
 
         public static void Init()
         {
-            RuntimeProvider.Init();
-            InputManager.Init();
-
             InitConfig();
+
+            UniverseLib.Universe.Init(Startup_Delay.Value, LateInit, LogHandler, new UniverseLib.Config.UUConfig
+            {
+                Disable_EventSystem_Override = Disable_EventSystem_Override.Value,
+                Force_Unlock_Mouse = true,
+                Unhollowed_Modules_Folder = Path.Combine(Paths.BepInExRootPath, "unhollowed")
+            });
         }
 
-        private static float startupDelay = 1f;
-        private static bool doneSetup;
+        private static void LateInit()
+        {
+            UIManager.Init();
+        }
 
         public static void Update()
         {
-            if (startupDelay > 0f)
-                startupDelay -= Time.deltaTime;
-
-            if (startupDelay > 0f)
+            if (!UIManager.UIRoot)
                 return;
 
-            if (!doneSetup)
-            {
-                UIFactory.Init();
-                UIManager.Init();
-
-                ConfigurationEditor.SetupCategories();
-
-                Log.LogMessage("ConfigManager initialized.");
-                doneSetup = true;
-            }
-
-            UIManager.Update();
-            InputManager.Update();
+            if (InputManager.GetKeyDown(Main_Menu_Toggle.Value))
+                UIManager.ShowMenu = !UIManager.ShowMenu;
         }
 
         public static void InitConfig()
@@ -73,28 +66,58 @@ namespace ConfigManager
             Auto_Save_Configs = ConfigManagerPlugin.Instance.Config.Bind(new ConfigDefinition(CTG, "Auto-save settings"),
                 false,
                 new ConfigDescription("Automatically save settings after changing them? This will mean the undo feature will be unavailable."));
-
             Auto_Save_Configs.SettingChanged += Auto_Save_Configs_SettingChanged;
 
-            UI_Scale = ConfigManagerPlugin.Instance.Config.Bind(new ConfigDefinition(CTG, "UI Scale"),
-                1f,
-                new ConfigDescription("The scale of the UI elements", new AcceptableValueRange<float>(0.75f, 1.25f)));
+            //UI_Scale = ConfigManagerPlugin.Instance.Config.Bind(new ConfigDefinition(CTG, "UI Scale"),
+            //    1f,
+            //    new ConfigDescription("The scale of the UI elements", new AcceptableValueRange<float>(0.75f, 1.25f)));
+            //
+            //UI_Scale.SettingChanged += UiScale_SettingChanged;
 
-            UI_Scale.SettingChanged += UiScale_SettingChanged;
+            Startup_Delay = ConfigManagerPlugin.Instance.Config.Bind(CTG, "Startup Delay", 1f, 
+                "Delays the core startup process. Adjust it if you experience issues.");
+
+            Disable_EventSystem_Override = ConfigManagerPlugin.Instance.Config.Bind(CTG, "Disable EventSystem Override", false,
+                "Disables the overriding of the EventSystem from the game, if you experience issues with UI Input.");
+            Disable_EventSystem_Override.SettingChanged += Disable_EventSystem_Override_SettingChanged;
 
             // InitTest();
+        }
+
+        private static void Disable_EventSystem_Override_SettingChanged(object sender, EventArgs e)
+        {
+            bool val = (bool)(e as SettingChangedEventArgs).ChangedSetting.BoxedValue;
+            UniverseLib.Config.ConfigManager.Disable_EventSystem_Override = val;
         }
 
         private static void Auto_Save_Configs_SettingChanged(object sender, EventArgs e)
         {
             bool val = (bool)(e as SettingChangedEventArgs).ChangedSetting.BoxedValue;
-            ConfigurationEditor.saveButton.gameObject.SetActive(!val);
+            UIManager.saveButton.Component.gameObject.SetActive(!val);
         }
 
-        private static void UiScale_SettingChanged(object sender, EventArgs e)
+        //private static void UiScale_SettingChanged(object sender, EventArgs e)
+        //{
+        //    float scale = (float)(e as SettingChangedEventArgs).ChangedSetting.BoxedValue;
+        //    ConfigUIManager.CanvasRoot.GetComponent<Canvas>().scaleFactor = scale;
+        //}
+
+        private static void LogHandler(string log, LogType logType)
         {
-            float scale = (float)(e as SettingChangedEventArgs).ChangedSetting.BoxedValue;
-            UIManager.CanvasRoot.GetComponent<Canvas>().scaleFactor = scale;
+            switch (logType)
+            {
+                case LogType.Log:
+                    Log.LogMessage(log);
+                    return;
+                case LogType.Warning:
+                case LogType.Assert:
+                    Log.LogWarning(log);
+                    return;
+                case LogType.Error:
+                case LogType.Exception:
+                    Log.LogError(log);
+                    return;
+            }
         }
 
         ////  ~~~~~~~~~~~~~~~~ TEST CONFIG ~~~~~~~~~~~~~~~~
