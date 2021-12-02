@@ -26,7 +26,7 @@ Although this tool should work out of the box for most Unity games, in some case
 To adjust the settings, open the config file: `BepInEx\config\com.sinai.bepinexconfigmanager.cfg`
 
 Try adjusting the following settings and see if it fixes your issues:
-* `Startup_Delay_Time` - increase to 5-10 seconds (or more as needed), can fix issues with UnityExplorer being destroyed or corrupted during startup.
+* `Startup_Delay_Time` - increase to 5-10 seconds (or more as needed), can fix issues with the UI being destroyed or corrupted during startup.
 * `Disable_EventSystem_Override` - if input is not working properly, try setting this to `true`.
 
 If these fixes do not work, please create an issue in this repo and I'll do my best to look into it.
