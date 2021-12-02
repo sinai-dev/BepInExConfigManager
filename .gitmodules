@@ -1,0 +1,3 @@
+[submodule "lib/UniverseLib"]
+	path = lib/UniverseLib
+	url = https://github.com/sinai-dev/UniverseLib
