@@ -62,13 +62,13 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="UniverseLib.Mono">
-      <HintPath>packages\UniverseLib.1.1.0\lib\net35\UniverseLib.Mono.dll</HintPath>
+      <HintPath>packages\UniverseLib.1.1.1\lib\net35\UniverseLib.Mono.dll</HintPath>
     </Reference>
   </ItemGroup>
   <!-- Il2Cpp refs -->
   <ItemGroup Condition="'$(IsCpp)'=='true'">
     <Reference Include="UniverseLib.IL2CPP">
-      <HintPath>packages\UniverseLib.1.1.0\lib\net472\UniverseLib.IL2CPP.dll</HintPath>
+      <HintPath>packages\UniverseLib.1.1.1\lib\net472\UniverseLib.IL2CPP.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx.Core">
       <HintPath>..\lib\BepInEx.Core.dll</HintPath>
