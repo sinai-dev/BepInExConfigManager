@@ -6,17 +6,18 @@ using UnityEngine;
 using UnityEngine.UI;
 using ConfigManager.UI;
 using UniverseLib.UI;
+using UniverseLib;
 
 namespace ConfigManager.UI.InteractiveValues
 {
     public class InteractiveEnum : InteractiveValue
     {
-        internal static Dictionary<Type, KeyValuePair<long, string>[]> s_enumNamesCache = new Dictionary<Type, KeyValuePair<long, string>[]>();
+        internal static Dictionary<Type, KeyValuePair<long, string>[]> enumNamesCache = new();
 
-        internal KeyValuePair<long, string>[] m_values = new KeyValuePair<long, string>[0];
-        internal Dictionary<string, Dropdown.OptionData> m_dropdownOptions = new Dictionary<string, Dropdown.OptionData>();
+        internal KeyValuePair<long, string>[] values = new KeyValuePair<long, string>[0];
+        internal Dictionary<string, Dropdown.OptionData> dropdownOptions = new();
 
-        internal Dropdown m_dropdown;
+        internal Dropdown dropdown;
 
         public InteractiveEnum(object value, Type valueType) : base(value, valueType)
         {
@@ -30,7 +31,7 @@ namespace ConfigManager.UI.InteractiveValues
         {
             var type = Value?.GetType() ?? FallbackType;
 
-            if (!s_enumNamesCache.ContainsKey(type))
+            if (!enumNamesCache.ContainsKey(type))
             {
                 // using GetValues not GetNames, to catch instances of weird enums (eg CameraClearFlags)
                 var values = Enum.GetValues(type);
@@ -67,10 +68,10 @@ namespace ConfigManager.UI.InteractiveValues
                     list.Add(new KeyValuePair<long, string>(longValue, name));
                 }
 
-                s_enumNamesCache.Add(type, list.ToArray());
+                enumNamesCache.Add(type, list.ToArray());
             }
 
-            m_values = s_enumNamesCache[type];
+            values = enumNamesCache[type];
         }
 
         public override void OnValueUpdated()
@@ -88,16 +89,16 @@ namespace ConfigManager.UI.InteractiveValues
                 return;
 
             string key = Value.ToString();
-            if (m_dropdownOptions.ContainsKey(key))
-                m_dropdown.value = m_dropdown.options.IndexOf(m_dropdownOptions[key]);
+            if (dropdownOptions.ContainsKey(key))
+                dropdown.value = dropdown.options.IndexOf(dropdownOptions[key]);
         }
 
         private void SetValueFromDropdown()
         {
             var type = Value?.GetType() ?? FallbackType;
-            var index = m_dropdown.value;
+            var index = dropdown.value;
 
-            var value = Enum.Parse(type, s_enumNamesCache[type][index].Value);
+            var value = Enum.Parse(type, enumNamesCache[type][index].Value);
 
             if (value != null)
             {
@@ -116,22 +117,22 @@ namespace ConfigManager.UI.InteractiveValues
 
             // dropdown
 
-            var dropdownObj = UIFactory.CreateDropdown(m_mainContent, out m_dropdown, "", 14, null);
+            var dropdownObj = UIFactory.CreateDropdown(mainContent, "InteractiveDropdown", out dropdown, "", 14, null);
             UIFactory.SetLayoutElement(dropdownObj, minWidth: 400, minHeight: 25);
 
-            m_dropdown.onValueChanged.AddListener((int val) =>
+            dropdown.onValueChanged.AddListener((int val) =>
             {
                 SetValueFromDropdown();
             });
 
-            foreach (var kvp in m_values)
+            foreach (var kvp in values)
             {
                 var opt = new Dropdown.OptionData
                 {
                     text = kvp.Value
                 };
-                m_dropdown.options.Add(opt);
-                m_dropdownOptions.Add(kvp.Value, opt);
+                dropdown.options.Add(opt);
+                dropdownOptions.Add(kvp.Value, opt);
             }
         }
     }

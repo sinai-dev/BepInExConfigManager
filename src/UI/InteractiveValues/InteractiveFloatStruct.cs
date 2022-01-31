@@ -19,34 +19,34 @@ namespace ConfigManager.UI.InteractiveValues
         public class StructInfo
         {
             public string[] FieldNames { get; }
-            private readonly FieldInfo[] m_fields;
+            private readonly FieldInfo[] fields;
 
             public StructInfo(Type type)
             {
-                m_fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
                                .Where(it => !it.IsLiteral)
                                .ToArray();
 
-                FieldNames = m_fields.Select(it => it.Name)
+                FieldNames = fields.Select(it => it.Name)
                                      .ToArray();
             }
 
             public object SetValue(ref object instance, int fieldIndex, float val)
             {
-                m_fields[fieldIndex].SetValue(instance, val);
+                fields[fieldIndex].SetValue(instance, val);
                 return instance;
             }
 
             public float GetValue(object instance, int fieldIndex)
-                => (float)m_fields[fieldIndex].GetValue(instance);
+                => (float)fields[fieldIndex].GetValue(instance);
 
             public void RefreshUI(InputField[] inputs, object instance)
             {
                 try
                 {
-                    for (int i = 0; i < m_fields.Length; i++)
+                    for (int i = 0; i < fields.Length; i++)
                     {
-                        var field = m_fields[i];
+                        var field = fields[i];
                         float val = (float)field.GetValue(instance);
                         inputs[i].text = val.ToString();
                     }
@@ -58,7 +58,7 @@ namespace ConfigManager.UI.InteractiveValues
             }
         }
 
-        private static readonly Dictionary<string, bool> _typeSupportCache = new Dictionary<string, bool>();
+        private static readonly Dictionary<string, bool> _typeSupportCache = new();
         
         public static bool IsTypeSupported(Type type)
         {
@@ -99,24 +99,24 @@ namespace ConfigManager.UI.InteractiveValues
 
             base.RefreshUIForValue();
 
-            structInfo.RefreshUI(m_inputs, this.Value);
+            structInfo.RefreshUI(inputs, this.Value);
         }
 
-        internal Type m_lastStructType;
+        internal Type lastStructType;
 
         internal void InitializeStructInfo()
         {
             var type = Value?.GetType() ?? FallbackType;
 
-            if (structInfo != null && type == m_lastStructType)
+            if (structInfo != null && type == lastStructType)
                 return;
 
-            m_lastStructType = type;
+            lastStructType = type;
 
             structInfo = new StructInfo(type);
         }
 
-        internal InputField[] m_inputs;
+        internal InputField[] inputs;
 
         public override void ConstructUI(GameObject parent)
         {
@@ -126,11 +126,11 @@ namespace ConfigManager.UI.InteractiveValues
 
                 base.ConstructUI(parent);
 
-                var editorContainer = UIFactory.CreateGridGroup(m_mainContent, "EditorContent", new Vector2(150f, 25f), new Vector2(5f, 5f),
+                var editorContainer = UIFactory.CreateGridGroup(mainContent, "EditorContent", new Vector2(150f, 25f), new Vector2(5f, 5f),
                     new Color(1,1,1,0));
                 UIFactory.SetLayoutElement(editorContainer, minWidth: 300, flexibleWidth: 9999);
 
-                m_inputs = new InputField[structInfo.FieldNames.Length];
+                inputs = new InputField[structInfo.FieldNames.Length];
 
                 for (int i = 0; i < structInfo.FieldNames.Length; i++)
                     AddEditorRow(i, editorContainer);
@@ -161,7 +161,7 @@ namespace ConfigManager.UI.InteractiveValues
                 var inputField = UIFactory.CreateInputField(row, "InputField", "...");
                 UIFactory.SetLayoutElement(inputField.Component.gameObject, minWidth: 120, minHeight: 25, flexibleWidth: 0);
 
-                m_inputs[index] = inputField.Component;
+                inputs[index] = inputField.Component;
 
                 inputField.OnValueChanged += (string val) =>
                 {

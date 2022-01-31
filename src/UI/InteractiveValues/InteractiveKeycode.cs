@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using UniverseLib;
 using UniverseLib.Input;
 using UniverseLib.UI;
+using UniverseLib.UI.Models;
 
 namespace ConfigManager.UI.InteractiveValues
 {
@@ -103,20 +104,20 @@ namespace ConfigManager.UI.InteractiveValues
         {
             base.ConstructUI(parent);
 
-            labelText = UIFactory.CreateLabel(m_mainContent, "Label", Value?.ToString() ?? "<notset>", TextAnchor.MiddleLeft);
+            labelText = UIFactory.CreateLabel(mainContent, "Label", Value?.ToString() ?? "<notset>", TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(labelText.gameObject, minWidth: 150, minHeight: 25);
 
-            rebindButton = UIFactory.CreateButton(m_mainContent, "RebindButton", "Rebind");
+            rebindButton = UIFactory.CreateButton(mainContent, "RebindButton", "Rebind");
             rebindButton.OnClick += BeginRebind;
             UIFactory.SetLayoutElement(rebindButton.Component.gameObject, minHeight: 25, minWidth: 100);
 
-            confirmButton = UIFactory.CreateButton(m_mainContent, "ConfirmButton", "Confirm", new Color(0.1f, 0.4f, 0.1f));
+            confirmButton = UIFactory.CreateButton(mainContent, "ConfirmButton", "Confirm", new Color(0.1f, 0.4f, 0.1f));
             confirmButton.OnClick += ConfirmEndRebind;
             UIFactory.SetLayoutElement(confirmButton.Component.gameObject, minHeight: 25, minWidth: 100);
             confirmButton.Component.gameObject.SetActive(false);
-            RuntimeProvider.Instance.SetColorBlock(confirmButton.Component, disabled: new Color(0.3f, 0.3f, 0.3f));
+            RuntimeHelper.SetColorBlock(confirmButton.Component, disabled: new Color(0.3f, 0.3f, 0.3f));
 
-            cancelButton = UIFactory.CreateButton(m_mainContent, "EndButton", "Cancel", new Color(0.4f, 0.1f, 0.1f));
+            cancelButton = UIFactory.CreateButton(mainContent, "EndButton", "Cancel", new Color(0.4f, 0.1f, 0.1f));
             cancelButton.OnClick += CancelEndRebind;
             UIFactory.SetLayoutElement(cancelButton.Component.gameObject, minHeight: 25, minWidth: 100);
             cancelButton.Component.gameObject.SetActive(false);

@@ -5,21 +5,22 @@ using UnityEngine;
 using UnityEngine.UI;
 using UniverseLib;
 using UniverseLib.UI;
+using UniverseLib.UI.Models;
 
 namespace ConfigManager.UI.InteractiveValues
 {
     public abstract class InteractiveValue
     {
-        private static readonly HashSet<Type> s_customIValueTypes = new HashSet<Type>();
-        private static readonly List<InteractiveValue> s_customIValueInstances = new List<InteractiveValue>();
+        private static readonly HashSet<Type> customIValueTypes = new();
+        private static readonly List<InteractiveValue> customIValueInstances = new();
 
         public static void RegisterIValueType<T>() where T : InteractiveValue
         {
-            if (s_customIValueTypes.Contains(typeof(T)))
+            if (customIValueTypes.Contains(typeof(T)))
                 return;
 
-            s_customIValueInstances.Add((T)Activator.CreateInstance(typeof(T), new object[] { null, typeof(object) }));
-            s_customIValueTypes.Add(typeof(T));
+            customIValueInstances.Add((T)Activator.CreateInstance(typeof(T), new object[] { null, typeof(object) }));
+            customIValueTypes.Add(typeof(T));
         }
 
         public static Type GetIValueForType(Type type)
@@ -49,7 +50,7 @@ namespace ConfigManager.UI.InteractiveValues
             else if (InteractiveFloatStruct.IsTypeSupported(type))
                 return typeof(InteractiveFloatStruct);
             // Custom defined handlers
-            else if (s_customIValueInstances.FirstOrDefault(it => it.SupportsType(type)) is InteractiveValue custom)
+            else if (customIValueInstances.FirstOrDefault(it => it.SupportsType(type)) is InteractiveValue custom)
                 return custom.GetType();
             // fallback to default handler
             else
@@ -82,20 +83,20 @@ namespace ConfigManager.UI.InteractiveValues
         public virtual bool HasSubContent => false;
         public virtual bool SubContentWanted => false;
 
-        public bool m_UIConstructed;
+        public bool UIConstructed;
 
-        protected internal GameObject m_mainContentParent;
-        protected internal GameObject m_subContentParent;
+        protected internal GameObject mainContentParent;
+        protected internal GameObject subContentParent;
 
-        protected internal GameObject m_mainContent;
+        protected internal GameObject mainContent;
 
-        protected internal ButtonRef m_subExpandBtn;
-        protected internal bool m_subContentConstructed;
+        protected internal ButtonRef subExpandBtn;
+        protected internal bool subContentConstructed;
 
         public virtual void OnValueUpdated()
         {
-            if (!m_UIConstructed)
-                ConstructUI(m_mainContentParent);
+            if (!UIConstructed)
+                ConstructUI(mainContentParent);
 
             RefreshUIForValue();
         }
@@ -108,77 +109,77 @@ namespace ConfigManager.UI.InteractiveValues
         {
             if (HasSubContent)
             {
-                if (m_subExpandBtn.Component.gameObject.activeSelf != SubContentWanted)
-                    m_subExpandBtn.Component.gameObject.SetActive(SubContentWanted);
+                if (subExpandBtn.Component.gameObject.activeSelf != SubContentWanted)
+                    subExpandBtn.Component.gameObject.SetActive(SubContentWanted);
 
-                if (!SubContentWanted && m_subContentParent.activeSelf)
+                if (!SubContentWanted && subContentParent.activeSelf)
                     ToggleSubcontent();
             }
         }
 
         public virtual void ConstructSubcontent()
         {
-            m_subContentConstructed = true;
+            subContentConstructed = true;
         }
 
         public virtual void DestroySubContent()
         {
-            if (this.m_subContentParent && HasSubContent)
+            if (this.subContentParent && HasSubContent)
             {
-                for (int i = 0; i < this.m_subContentParent.transform.childCount; i++)
+                for (int i = 0; i < this.subContentParent.transform.childCount; i++)
                 {
-                    var child = m_subContentParent.transform.GetChild(i);
+                    var child = subContentParent.transform.GetChild(i);
                     if (child)
                         GameObject.Destroy(child.gameObject);
                 }
             }
 
-            m_subContentConstructed = false;
+            subContentConstructed = false;
         }
 
         public void ToggleSubcontent()
         {
-            if (!this.m_subContentParent.activeSelf)
+            if (!this.subContentParent.activeSelf)
             {
-                this.m_subContentParent.SetActive(true);
-                this.m_subContentParent.transform.SetAsLastSibling();
-                m_subExpandBtn.ButtonText.text = "▼ Click to hide";
+                this.subContentParent.SetActive(true);
+                this.subContentParent.transform.SetAsLastSibling();
+                subExpandBtn.ButtonText.text = "▼ Click to hide";
             }
             else
             {
-                this.m_subContentParent.SetActive(false);
-                m_subExpandBtn.ButtonText.text = "▲ Expand to edit";
+                this.subContentParent.SetActive(false);
+                subExpandBtn.ButtonText.text = "▲ Expand to edit";
             }
 
-            OnToggleSubcontent(m_subContentParent.activeSelf);
+            OnToggleSubcontent(subContentParent.activeSelf);
 
             RefreshSubContentState();
         }
 
         protected internal virtual void OnToggleSubcontent(bool toggle)
         {
-            if (!m_subContentConstructed)
+            if (!subContentConstructed)
                 ConstructSubcontent();
         }
 
         public virtual void ConstructUI(GameObject parent)
         {
-            m_UIConstructed = true;
+            UIConstructed = true;
 
-            m_mainContent = UIFactory.CreateHorizontalGroup(parent, $"InteractiveValue_{this.GetType().Name}", false, false, true, true, 4, default, 
+            mainContent = UIFactory.CreateHorizontalGroup(parent, $"InteractiveValue_{this.GetType().Name}", false, false, true, true, 4, default, 
                 new Color(1, 1, 1, 0), TextAnchor.UpperLeft);
 
-            var mainRect = m_mainContent.GetComponent<RectTransform>();
+            var mainRect = mainContent.GetComponent<RectTransform>();
             mainRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 25);
 
-            UIFactory.SetLayoutElement(m_mainContent, flexibleWidth: 9000, minWidth: 175, minHeight: 25, flexibleHeight: 0);
+            UIFactory.SetLayoutElement(mainContent, flexibleWidth: 9000, minWidth: 175, minHeight: 25, flexibleHeight: 0);
 
             // subcontent expand button
             if (HasSubContent)
             {
-                m_subExpandBtn = UIFactory.CreateButton(m_mainContent, "ExpandSubcontentButton", "▲ Expand to edit", new Color(0.3f, 0.3f, 0.3f));
-                m_subExpandBtn.OnClick += ToggleSubcontent;
-                UIFactory.SetLayoutElement(m_subExpandBtn.Component.gameObject, minHeight: 25, minWidth: 120, flexibleWidth: 0, flexibleHeight: 0);
+                subExpandBtn = UIFactory.CreateButton(mainContent, "ExpandSubcontentButton", "▲ Expand to edit", new Color(0.3f, 0.3f, 0.3f));
+                subExpandBtn.OnClick += ToggleSubcontent;
+                UIFactory.SetLayoutElement(subExpandBtn.Component.gameObject, minHeight: 25, minWidth: 120, flexibleWidth: 0, flexibleHeight: 0);
             }
         }
     }

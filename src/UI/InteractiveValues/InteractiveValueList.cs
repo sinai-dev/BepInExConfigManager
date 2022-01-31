@@ -7,15 +7,16 @@ using UnityEngine.UI;
 using ConfigManager.UI;
 using System.Collections;
 using UniverseLib.UI;
+using UniverseLib;
 
 namespace ConfigManager.UI.InteractiveValues
 {
     public class InteractiveValueList : InteractiveValue
     {
-        internal IEnumerable<object> m_acceptableValues;
+        internal IEnumerable<object> acceptableValues;
 
-        internal Dropdown m_dropdown;
-        internal Dictionary<object, Dropdown.OptionData> m_dropdownOptions = new Dictionary<object, Dropdown.OptionData>();
+        internal Dropdown dropdown;
+        internal Dictionary<object, Dropdown.OptionData> dropdownOptions = new();
 
         public InteractiveValueList(object value, Type valueType) : base(value, valueType) { }
 
@@ -23,12 +24,12 @@ namespace ConfigManager.UI.InteractiveValues
 
         internal void GetAcceptableValues()
         {
-            if (m_acceptableValues != null)
+            if (acceptableValues != null)
                 return;
 
             var acceptable = Owner.RefConfig.Description.AcceptableValues;
             var field = acceptable.GetType().GetProperty("AcceptableValues");
-            m_acceptableValues = (field.GetValue(acceptable, null) as IList).Cast<object>();
+            acceptableValues = (field.GetValue(acceptable, null) as IList).Cast<object>();
         }
 
         public override void OnValueUpdated()
@@ -42,8 +43,8 @@ namespace ConfigManager.UI.InteractiveValues
         {
             base.RefreshUIForValue();
 
-            if (m_dropdownOptions.ContainsKey(Value))
-                m_dropdown.value = m_dropdown.options.IndexOf(m_dropdownOptions[Value]);
+            if (dropdownOptions.ContainsKey(Value))
+                dropdown.value = dropdown.options.IndexOf(dropdownOptions[Value]);
         }
 
         private void SetValueFromDropdown()
@@ -53,7 +54,7 @@ namespace ConfigManager.UI.InteractiveValues
 
             //var value = Enum.Parse(type, s_enumNamesCache[type][index].Value);
 
-            var value = m_acceptableValues.ElementAt(m_dropdown.value);
+            var value = acceptableValues.ElementAt(dropdown.value);
 
             if (value != null)
             {
@@ -69,22 +70,22 @@ namespace ConfigManager.UI.InteractiveValues
 
             // dropdown
 
-            var dropdownObj = UIFactory.CreateDropdown(m_mainContent, out m_dropdown, "", 14, null);
+            var dropdownObj = UIFactory.CreateDropdown(mainContent, "InteractiveValueList", out dropdown, "", 14, null);
             UIFactory.SetLayoutElement(dropdownObj, minWidth: 400, minHeight: 25);
 
-            m_dropdown.onValueChanged.AddListener((int val) =>
+            dropdown.onValueChanged.AddListener((int val) =>
             {
                 SetValueFromDropdown();
             });
 
-            foreach (var obj in m_acceptableValues)
+            foreach (var obj in acceptableValues)
             {
                 var opt = new Dropdown.OptionData
                 {
                     text = obj.ToString()
                 };
-                m_dropdown.options.Add(opt);
-                m_dropdownOptions.Add(obj, opt);
+                dropdown.options.Add(opt);
+                dropdownOptions.Add(obj, opt);
             }
         }
     }

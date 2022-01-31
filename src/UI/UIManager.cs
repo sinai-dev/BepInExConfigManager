@@ -12,6 +12,9 @@ using UnityEngine.UI;
 using UniverseLib.UI;
 using UniverseLib.Input;
 using UniverseLib;
+using UniverseLib.UI.Models;
+using UniverseLib.Utility;
+using HarmonyLib;
 #if CPP
 using BepInEx.IL2CPP;
 #endif
@@ -24,7 +27,7 @@ namespace ConfigManager.UI
         {
             public ConfigFile RefConfigFile;
 
-            internal List<EntryInfo> Entries = new List<EntryInfo>();
+            private List<EntryInfo> entries = new();
 
             internal bool isCompletelyHidden;
             internal ButtonRef listButton;
@@ -32,6 +35,8 @@ namespace ConfigManager.UI
 
             internal IEnumerable<GameObject> HiddenEntries 
                 => Entries.Where(it => it.IsHidden).Select(it => it.content);
+
+            internal List<EntryInfo> Entries { get => entries; set => entries = value; }
         }
 
         internal class EntryInfo
@@ -45,11 +50,11 @@ namespace ConfigManager.UI
         }
 
         private static UIBase uiBase;
-        public static GameObject UIRoot => uiBase == null? null : uiBase.RootObject;
+        public static GameObject UIRoot => uiBase?.RootObject;
 
         public static bool ShowMenu
         {
-            get => uiBase == null ? false : uiBase.Enabled;
+            get => uiBase != null && uiBase.Enabled;
             set
             {
                 if (uiBase == null || !UIRoot || uiBase.Enabled == value)
@@ -89,13 +94,13 @@ namespace ConfigManager.UI
         internal static string Filter => currentFilter ?? "";
         private static string currentFilter;
 
-        private static readonly HashSet<CachedConfigEntry> editingEntries = new HashSet<CachedConfigEntry>();
+        private static readonly HashSet<CachedConfigEntry> editingEntries = new();
         internal static ButtonRef saveButton;
 
-        private static readonly Dictionary<string, ConfigFileInfo> _categoryInfos = new Dictionary<string, ConfigFileInfo>();
+        private static readonly Dictionary<string, ConfigFileInfo> _categoryInfos = new();
         private static ConfigFileInfo _currentCategory;
 
-        private static Color _normalInactiveColor = new Color(0.38f, 0.34f, 0.34f);
+        private static Color _normalInactiveColor = new(0.38f, 0.34f, 0.34f);
         private static Color _normalActiveColor = UnityHelpers.ToColor("c2b895");
 
         // called by UIManager.Init
@@ -206,7 +211,7 @@ namespace ConfigManager.UI
             obj.SetActive(true);
 
             var btn = info.listButton;
-            RuntimeProvider.Instance.SetColorBlock(btn.Component, _normalActiveColor);
+            RuntimeHelper.SetColorBlock(btn.Component, _normalActiveColor);
 
             RefreshFilter();
         }
@@ -216,7 +221,7 @@ namespace ConfigManager.UI
             if (_currentCategory == null)
                 return;
 
-            RuntimeProvider.Instance.SetColorBlock(_currentCategory.listButton.Component, _normalInactiveColor);
+            RuntimeHelper.SetColorBlock(_currentCategory.listButton.Component, _normalInactiveColor);
             _currentCategory.contentObj.SetActive(false);
 
             _currentCategory = null;
@@ -224,21 +229,21 @@ namespace ConfigManager.UI
 
         private void ConstructMenu()
         {
-            MainPanel = UIFactory.CreatePanel("MainMenu", UIRoot, out GameObject mainContent);
-            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(mainContent, true, false, true, true);
+            MainPanel = UIFactory.CreatePanel("MainMenu", UIRoot);
+            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(MainPanel, true, false, true, true);
 
             var rect = MainPanel.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0.2f, 0.02f);
             rect.anchorMax = new Vector2(0.8f, 0.98f);
             rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 1000);
 
-            ConstructTitleBar(mainContent);
+            ConstructTitleBar(MainPanel);
 
-            ConstructSaveButton(mainContent);
+            ConstructSaveButton(MainPanel);
 
-            ConstructToolbar(mainContent);
+            ConstructToolbar(MainPanel);
 
-            ConstructEditorViewport(mainContent);
+            ConstructEditorViewport(MainPanel);
         }
 
         private void ConstructTitleBar(GameObject content)
@@ -260,7 +265,7 @@ namespace ConfigManager.UI
             var hideButton = UIFactory.CreateButton(titleBar, "HideButton", $"X");
             hideButton.OnClick += () => { ShowMenu = false; };
             UIFactory.SetLayoutElement(hideButton.Component.gameObject, minWidth: 25, flexibleWidth: 0, flexibleHeight: 0);
-            RuntimeProvider.Instance.SetColorBlock(hideButton.Component, new Color(1, 0.2f, 0.2f),
+            RuntimeHelper.SetColorBlock(hideButton.Component, new Color(1, 0.2f, 0.2f),
                 new Color(1, 0.6f, 0.6f), new Color(0.3f, 0.1f, 0.1f));
 
             Text hideText = hideButton.Component.GetComponentInChildren<Text>();
@@ -275,7 +280,7 @@ namespace ConfigManager.UI
             saveButton = UIFactory.CreateButton(mainContent, "SaveButton", "Save Preferences");
             saveButton.OnClick += SavePreferences;
             UIFactory.SetLayoutElement(saveButton.Component.gameObject, minHeight: 35, flexibleHeight: 0, flexibleWidth: 9999);
-            RuntimeProvider.Instance.SetColorBlock(saveButton.Component, new Color(0.1f, 0.3f, 0.1f),
+            RuntimeHelper.SetColorBlock(saveButton.Component, new Color(0.1f, 0.3f, 0.1f),
                 new Color(0.2f, 0.5f, 0.2f), new Color(0.1f, 0.2f, 0.1f), new Color(0.2f, 0.2f, 0.2f));
 
             saveButton.Component.interactable = false;
@@ -323,7 +328,7 @@ namespace ConfigManager.UI
 #if CPP
             ConfigFile coreConfig = ConfigFile.CoreConfig;
 #else
-            ConfigFile coreConfig = (ConfigFile)ReflectionUtility.GetPropertyInfo(typeof(ConfigFile), "CoreConfig").GetValue(null, null);
+            ConfigFile coreConfig = (ConfigFile)AccessTools.Property(typeof(ConfigFile), "CoreConfig").GetValue(null, null);
 #endif
             if (coreConfig != null)
                 SetupCategory(coreConfig, null, new BepInPlugin("bepinex.core.config", "BepInEx", "1.0"), true);
@@ -379,7 +384,7 @@ namespace ConfigManager.UI
                 btn.OnClick += () => { SetActiveCategory(meta.GUID); };
                 UIFactory.SetLayoutElement(btn.Component.gameObject, flexibleWidth: 9999, minHeight: 30, flexibleHeight: 0);
 
-                RuntimeProvider.Instance.SetColorBlock(btn.Component, _normalInactiveColor, new Color(0.6f, 0.55f, 0.45f),
+                RuntimeHelper.SetColorBlock(btn.Component, _normalInactiveColor, new Color(0.6f, 0.55f, 0.45f),
                     new Color(0.20f, 0.18f, 0.15f));
 
                 info.listButton = btn;
@@ -423,7 +428,7 @@ namespace ConfigManager.UI
                         var cache = new CachedConfigEntry(configEntry, content);
                         cache.Enable();
 
-                        var obj = cache.m_UIroot;
+                        var obj = cache.UIroot;
 
                         bool advanced = forceAdvanced;
 

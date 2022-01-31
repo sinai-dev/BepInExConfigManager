@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using ConfigManager.UI;
 using UniverseLib.UI;
+using UniverseLib;
 
 namespace ConfigManager.UI.InteractiveValues
 {
@@ -13,7 +14,7 @@ namespace ConfigManager.UI.InteractiveValues
     {
         public InteractiveBool(object value, Type valueType) : base(value, valueType) { }
 
-        internal Toggle m_toggle;
+        internal Toggle toggle;
         private Text labelText;
 
         public override bool SupportsType(Type type) => type == typeof(bool);
@@ -22,11 +23,11 @@ namespace ConfigManager.UI.InteractiveValues
         {
             var val = (bool)Value;
 
-            if (!m_toggle.gameObject.activeSelf)
-                m_toggle.gameObject.SetActive(true);
+            if (!toggle.gameObject.activeSelf)
+                toggle.gameObject.SetActive(true);
 
-            if (val != m_toggle.isOn)
-                m_toggle.isOn = val;
+            if (val != toggle.isOn)
+                toggle.isOn = val;
 
             var color = val
                 ? "6bc981"  // on
@@ -46,11 +47,11 @@ namespace ConfigManager.UI.InteractiveValues
         {
             base.ConstructUI(parent);
 
-            var toggleObj = UIFactory.CreateToggle(m_mainContent, "InteractiveBoolToggle", out m_toggle, out _, new Color(0.1f, 0.1f, 0.1f));
+            var toggleObj = UIFactory.CreateToggle(mainContent, "InteractiveBoolToggle", out toggle, out _, new Color(0.1f, 0.1f, 0.1f));
             UIFactory.SetLayoutElement(toggleObj, minWidth: 24);
-            m_toggle.onValueChanged.AddListener(OnToggleValueChanged);
+            toggle.onValueChanged.AddListener(OnToggleValueChanged);
 
-            labelText = UIFactory.CreateLabel(m_mainContent, "TrueFalseLabel", "False", TextAnchor.MiddleLeft);
+            labelText = UIFactory.CreateLabel(mainContent, "TrueFalseLabel", "False", TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(labelText.gameObject, minWidth: 60, minHeight: 25);
 
             RefreshUIForValue();

@@ -9,16 +9,18 @@ using ConfigManager.UI;
 using BepInEx.Configuration;
 using UniverseLib.UI;
 using UniverseLib;
+using UniverseLib.UI.Models;
+using HarmonyLib;
 
 namespace ConfigManager.UI.InteractiveValues
 {
     public class InteractiveNumber : InteractiveValue
     {
-        internal InputFieldRef m_valueInput;
-        private Slider m_slider;
+        internal InputFieldRef valueInput;
+        private Slider slider;
 
-        public MethodInfo ParseMethod => m_parseMethod ??= Value.GetType().GetMethod("Parse", new Type[] { typeof(string) });
-        private MethodInfo m_parseMethod;
+        public MethodInfo ParseMethod => parseMethod ??= Value.GetType().GetMethod("Parse", new Type[] { typeof(string) });
+        private MethodInfo parseMethod;
 
         public InteractiveNumber(object value, Type valueType) : base(value, valueType) { }
 
@@ -27,20 +29,20 @@ namespace ConfigManager.UI.InteractiveValues
 
         public override void RefreshUIForValue()
         {
-            m_valueInput.Text = Value.ToString();
+            valueInput.Text = Value.ToString();
 
-            if (!m_valueInput.Component.gameObject.activeSelf)
-                m_valueInput.Component.gameObject.SetActive(true);
+            if (!valueInput.Component.gameObject.activeSelf)
+                valueInput.Component.gameObject.SetActive(true);
 
-            if (m_slider)
-                m_slider.value = (float)Convert.ChangeType(Value, typeof(float));
+            if (slider)
+                slider.value = (float)Convert.ChangeType(Value, typeof(float));
         }
 
         internal void SetValueFromInput()
         {
             try
             {
-                Value = ParseMethod.Invoke(null, new object[] { m_valueInput.Text });
+                Value = ParseMethod.Invoke(null, new object[] { valueInput.Text });
                 
                 if (Owner.RefConfig.Description?.AcceptableValues is AcceptableValueBase acceptable
                     && !acceptable.IsValid(Value))
@@ -51,11 +53,11 @@ namespace ConfigManager.UI.InteractiveValues
                 Owner.SetValueFromIValue();
                 RefreshUIForValue();
 
-                m_valueInput.Component.textComponent.color = Color.white;
+                valueInput.Component.textComponent.color = Color.white;
             }
             catch 
             {
-                m_valueInput.Component.textComponent.color = Color.red;
+                valueInput.Component.textComponent.color = Color.red;
             }
         }
 
@@ -63,10 +65,10 @@ namespace ConfigManager.UI.InteractiveValues
         {
             base.ConstructUI(parent);
 
-            m_valueInput = UIFactory.CreateInputField(m_mainContent, "InteractiveNumberInput", "...");
-            UIFactory.SetLayoutElement(m_valueInput.Component.gameObject, minWidth: 120, minHeight: 25, flexibleWidth: 0);
-            m_valueInput.Component.gameObject.SetActive(false);
-            m_valueInput.OnValueChanged += (string val) =>
+            valueInput = UIFactory.CreateInputField(mainContent, "InteractiveNumberInput", "...");
+            UIFactory.SetLayoutElement(valueInput.Component.gameObject, minWidth: 120, minHeight: 25, flexibleWidth: 0);
+            valueInput.Component.gameObject.SetActive(false);
+            valueInput.OnValueChanged += (string val) =>
             {
                 SetValueFromInput();
             };
@@ -80,24 +82,24 @@ namespace ConfigManager.UI.InteractiveValues
             if (Owner.RefConfig.Description.AcceptableValues is AcceptableValueBase range)
             {
                 var gtype = typeof(AcceptableValueRange<>).MakeGenericType(range.ValueType);
-                object minValue = ReflectionUtility.GetPropertyInfo(gtype, "MinValue").GetValue(range, null);
-                object maxValue = ReflectionUtility.GetPropertyInfo(gtype, "MaxValue").GetValue(range, null);
+                object minValue = AccessTools.Property(gtype, "MinValue").GetValue(range, null);
+                object maxValue = AccessTools.Property(gtype, "MaxValue").GetValue(range, null);
 
-                Owner.m_mainLabel.text += $" <color=grey><i>[{minValue.ToString()} - {maxValue.ToString()}]</i></color>";
+                Owner.mainLabel.text += $" <color=grey><i>[{minValue.ToString()} - {maxValue.ToString()}]</i></color>";
 
-                var sliderObj = UIFactory.CreateSlider(m_mainContent, "ValueSlider", out m_slider);
+                var sliderObj = UIFactory.CreateSlider(mainContent, "ValueSlider", out slider);
                 UIFactory.SetLayoutElement(sliderObj, minWidth: 250, minHeight: 25);
 
-                m_slider.minValue = (float)Convert.ChangeType(minValue, typeof(float));
-                m_slider.maxValue = (float)Convert.ChangeType(maxValue, typeof(float));
+                slider.minValue = (float)Convert.ChangeType(minValue, typeof(float));
+                slider.maxValue = (float)Convert.ChangeType(maxValue, typeof(float));
 
-                m_slider.value = (float)Convert.ChangeType(Value, typeof(float));
+                slider.value = (float)Convert.ChangeType(Value, typeof(float));
 
-                m_slider.onValueChanged.AddListener((float val) =>
+                slider.onValueChanged.AddListener((float val) =>
                 {
                     Value = Convert.ChangeType(val, FallbackType);
                     Owner.SetValueFromIValue();
-                    m_valueInput.Text = Value.ToString();
+                    valueInput.Text = Value.ToString();
                 });
 
                 //m_valueInput.onValueChanged.AddListener((string val) => 

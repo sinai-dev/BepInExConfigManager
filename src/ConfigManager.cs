@@ -35,7 +35,7 @@ namespace ConfigManager
         {
             InitConfig();
 
-            UniverseLib.Universe.Init(Startup_Delay.Value, LateInit, LogHandler, new UniverseLib.Config.UUConfig
+            UniverseLib.Universe.Init(Startup_Delay.Value, LateInit, LogHandler, new()
             {
                 Disable_EventSystem_Override = Disable_EventSystem_Override.Value,
                 Force_Unlock_Mouse = true,

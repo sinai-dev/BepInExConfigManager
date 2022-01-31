@@ -9,6 +9,7 @@ using System.Reflection;
 using BepInEx.Configuration;
 using UniverseLib;
 using UniverseLib.UI;
+using UniverseLib.Utility;
 
 namespace ConfigManager.UI
 {
@@ -21,22 +22,22 @@ namespace ConfigManager.UI
 
         // UI
         public bool UIConstructed;
-        public GameObject m_parentContent;
+        public GameObject parentContent;
         public GameObject ContentGroup;
         public RectTransform ContentRect;
         public GameObject SubContentGroup;
 
-        public Text m_mainLabel;
+        public Text mainLabel;
 
-        internal GameObject m_UIroot;
-        internal GameObject m_undoButton;
+        internal GameObject UIroot;
+        internal GameObject undoButton;
 
         public Type FallbackType => RefConfig.SettingType;
 
         public CachedConfigEntry(ConfigEntryBase config, GameObject parent)
         {
             RefConfig = config;
-            m_parentContent = parent;
+            parentContent = parent;
 
             EditedValue = config.BoxedValue;
 
@@ -70,8 +71,8 @@ namespace ConfigManager.UI
                 IValue = InteractiveValue.Create(value, fallbackType);
 
             IValue.Owner = this;
-            IValue.m_mainContentParent = ContentGroup;
-            IValue.m_subContentParent = this.SubContentGroup;
+            IValue.mainContentParent = ContentGroup;
+            IValue.subContentParent = this.SubContentGroup;
         }
 
         public void UpdateValue()
@@ -103,7 +104,7 @@ namespace ConfigManager.UI
             {
                 EditedValue = IValue.Value;
                 UIManager.OnEntryEdit(this);
-                m_undoButton.SetActive(true);
+                undoButton.SetActive(true);
             }
         }
 
@@ -125,7 +126,7 @@ namespace ConfigManager.UI
 
         internal void OnSaveOrUndo()
         {
-            m_undoButton.SetActive(false);
+            undoButton.SetActive(false);
             UIManager.OnEntrySaveOrUndo(this);
         }
 
@@ -137,33 +138,33 @@ namespace ConfigManager.UI
                 UpdateValue();
             }
 
-            m_UIroot.SetActive(true);
-            m_UIroot.transform.SetAsLastSibling();
+            UIroot.SetActive(true);
+            UIroot.transform.SetAsLastSibling();
         }
 
         public void Disable()
         {
-            if (m_UIroot)
-                m_UIroot.SetActive(false);
+            if (UIroot)
+                UIroot.SetActive(false);
         }
 
         public void Destroy()
         {
-            if (this.m_UIroot)
-                GameObject.Destroy(this.m_UIroot);
+            if (this.UIroot)
+                GameObject.Destroy(this.UIroot);
         }
 
         internal void ConstructUI()
         {
             UIConstructed = true;
 
-            m_UIroot = UIFactory.CreateVerticalGroup(m_parentContent, "CacheObjectBase.MainContent", true, false, true, true, 0, 
+            UIroot = UIFactory.CreateVerticalGroup(parentContent, "CacheObjectBase.MainContent", true, false, true, true, 0, 
                 default, new Color(1,1,1,0));
-            ContentRect = m_UIroot.GetComponent<RectTransform>();
+            ContentRect = UIroot.GetComponent<RectTransform>();
             ContentRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 25);
-            UIFactory.SetLayoutElement(m_UIroot, minHeight: 25, flexibleHeight: 9999, minWidth: 200, flexibleWidth: 5000);
+            UIFactory.SetLayoutElement(UIroot, minHeight: 25, flexibleHeight: 9999, minWidth: 200, flexibleWidth: 5000);
 
-            ContentGroup = UIFactory.CreateVerticalGroup(m_UIroot, "ConfigHolder", true, false, true, true, 5, new Vector4(2, 2, 5, 5),
+            ContentGroup = UIFactory.CreateVerticalGroup(UIroot, "ConfigHolder", true, false, true, true, 5, new Vector4(2, 2, 5, 5),
                 new Color(0.12f, 0.12f, 0.12f));
 
             var horiGroup = UIFactory.CreateHorizontalGroup(ContentGroup, "ConfigEntryHolder", false, false, true, true,
@@ -172,18 +173,18 @@ namespace ConfigManager.UI
 
             // config entry label
 
-            m_mainLabel = UIFactory.CreateLabel(horiGroup, "ConfigLabel", this.RefConfig.Definition.Key, TextAnchor.MiddleLeft, 
+            mainLabel = UIFactory.CreateLabel(horiGroup, "ConfigLabel", this.RefConfig.Definition.Key, TextAnchor.MiddleLeft, 
                 new Color(0.9f, 0.9f, 0.7f));
-            m_mainLabel.text += $" <i>({SignatureHighlighter.Parse(RefConfig.SettingType, false)})</i>";
-            UIFactory.SetLayoutElement(m_mainLabel.gameObject, minWidth: 200, minHeight: 22, flexibleWidth: 9999, flexibleHeight: 0);
+            mainLabel.text += $" <i>({SignatureHighlighter.Parse(RefConfig.SettingType, false)})</i>";
+            UIFactory.SetLayoutElement(mainLabel.gameObject, minWidth: 200, minHeight: 22, flexibleWidth: 9999, flexibleHeight: 0);
 
             // Undo button
 
             var undoButton = UIFactory.CreateButton(horiGroup, "UndoButton", "Undo", new Color(0.3f, 0.3f, 0.3f));
             undoButton.OnClick += UndoEdits;
-            m_undoButton = undoButton.Component.gameObject;
-            m_undoButton.SetActive(false);
-            UIFactory.SetLayoutElement(m_undoButton, minWidth: 80, minHeight: 22, flexibleWidth: 0);
+            this.undoButton = undoButton.Component.gameObject;
+            this.undoButton.SetActive(false);
+            UIFactory.SetLayoutElement(this.undoButton, minWidth: 80, minHeight: 22, flexibleWidth: 0);
 
             // Default button
 
@@ -212,8 +213,8 @@ namespace ConfigManager.UI
 
             if (IValue != null)
             {
-                IValue.m_mainContentParent = ContentGroup;
-                IValue.m_subContentParent = this.SubContentGroup;
+                IValue.mainContentParent = ContentGroup;
+                IValue.subContentParent = this.SubContentGroup;
             }
         }
     }
