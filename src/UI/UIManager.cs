@@ -229,21 +229,22 @@ namespace ConfigManager.UI
 
         private void ConstructMenu()
         {
-            MainPanel = UIFactory.CreatePanel("MainMenu", UIRoot);
-            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(MainPanel, true, false, true, true);
+            MainPanel = UIFactory.CreatePanel("MainMenu", UIRoot, out GameObject panelContent);
 
             var rect = MainPanel.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0.2f, 0.02f);
             rect.anchorMax = new Vector2(0.8f, 0.98f);
             rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 1000);
 
-            ConstructTitleBar(MainPanel);
+            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(panelContent, true, false, true, true);
 
-            ConstructSaveButton(MainPanel);
+            ConstructTitleBar(panelContent);
 
-            ConstructToolbar(MainPanel);
+            ConstructSaveButton(panelContent);
 
-            ConstructEditorViewport(MainPanel);
+            ConstructToolbar(panelContent);
+
+            ConstructEditorViewport(panelContent);
         }
 
         private void ConstructTitleBar(GameObject content)
