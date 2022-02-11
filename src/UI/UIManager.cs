@@ -251,7 +251,7 @@ namespace ConfigManager.UI
         {
             // Core title bar holder
 
-            GameObject titleBar = UIFactory.CreateHorizontalGroup(content, "MainTitleBar", true, false, true, true, 0, new Vector4(3, 3, 15, 3));
+            GameObject titleBar = UIFactory.CreateHorizontalGroup(content, "MainTitleBar", false, false, true, true, 0, new Vector4(3, 3, 15, 3));
             UIFactory.SetLayoutElement(titleBar, minWidth: 25, minHeight: 30, flexibleHeight: 0);
 
             // Main title label
@@ -265,7 +265,7 @@ namespace ConfigManager.UI
 
             var hideButton = UIFactory.CreateButton(titleBar, "HideButton", $"X");
             hideButton.OnClick += () => { ShowMenu = false; };
-            UIFactory.SetLayoutElement(hideButton.Component.gameObject, minWidth: 25, flexibleWidth: 0, flexibleHeight: 0);
+            UIFactory.SetLayoutElement(hideButton.Component.gameObject, minWidth: 25, preferredWidth: 25, flexibleWidth: 0, flexibleHeight: 0);
             RuntimeHelper.SetColorBlock(hideButton.Component, new Color(1, 0.2f, 0.2f),
                 new Color(1, 0.6f, 0.6f), new Color(0.3f, 0.1f, 0.1f));
 
