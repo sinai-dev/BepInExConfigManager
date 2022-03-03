@@ -265,7 +265,7 @@ namespace ConfigManager.UI
 
             var hideButton = UIFactory.CreateButton(titleBar, "HideButton", $"X");
             hideButton.OnClick += () => { ShowMenu = false; };
-            UIFactory.SetLayoutElement(hideButton.Component.gameObject, minWidth: 25, preferredWidth: 25, flexibleWidth: 0, flexibleHeight: 0);
+            UIFactory.SetLayoutElement(hideButton.Component.gameObject, minWidth: 25, preferredWidth: 25, flexibleWidth: 25, flexibleHeight: 25);
             RuntimeHelper.SetColorBlock(hideButton.Component, new Color(1, 0.2f, 0.2f),
                 new Color(1, 0.6f, 0.6f), new Color(0.3f, 0.1f, 0.1f));
 
