@@ -98,6 +98,13 @@ namespace ConfigManager.UI
 
         static void ProcessConfigFile(CachedConfigFile cachedConfig)
         {
+            RuntimeHelper.StartCoroutine(DelayedProcess(cachedConfig));
+        }
+
+        static IEnumerator DelayedProcess(CachedConfigFile cachedConfig)
+        {
+            yield return null;
+
             SetupCategory(cachedConfig.configFile, null, cachedConfig.metadata);
         }
 
@@ -121,7 +128,7 @@ namespace ConfigManager.UI
                     }
                 }
 
-                var info = new ConfigFileInfo()
+                ConfigFileInfo info = new()
                 {
                     RefConfigFile = configFile,
                 };
