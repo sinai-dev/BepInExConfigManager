@@ -334,24 +334,34 @@ namespace ConfigManager.UI
             if (coreConfig != null)
                 SetupCategory(coreConfig, null, new BepInPlugin("bepinex.core.config", "BepInEx", "1.0"), true);
 
-#if CPP
-            foreach (var plugin in IL2CPPChainloader.Instance.Plugins.Values)
-            {
-                var configFile = (plugin.Instance as BasePlugin)?.Config;
-                if (configFile != null && configFile.Keys.Any())
-                    SetupCategory(configFile, plugin.Instance, plugin.Metadata);
-            }
-#else
-            foreach (var plugin in BepInEx.Bootstrap.Chainloader.PluginInfos.Values)
-            {
-                if (plugin.Instance?.Info?.Metadata == null)
-                    continue;
+            foreach (var cachedConfig in Patcher.ConfigFiles)
+                ProcessConfigFile(cachedConfig);
 
-                var configFile = plugin.Instance.Config;
-                if (configFile != null && configFile.Keys.Any())
-                    SetupCategory(configFile, plugin.Instance, plugin.Instance.Info.Metadata);
-            }
-#endif
+            Patcher.ConfigFileCreated += ProcessConfigFile;
+
+//#if CPP
+//            foreach (var plugin in IL2CPPChainloader.Instance.Plugins.Values)
+//            {
+//                var configFile = (plugin.Instance as BasePlugin)?.Config;
+//                if (configFile != null && configFile.Keys.Any())
+//                    SetupCategory(configFile, plugin.Instance, plugin.Metadata);
+//            }
+//#else
+//            foreach (var plugin in BepInEx.Bootstrap.Chainloader.PluginInfos.Values)
+//            {
+//                if (plugin.Instance?.Info?.Metadata == null)
+//                    continue;
+//
+//                var configFile = plugin.Instance.Config;
+//                if (configFile != null && configFile.Keys.Any())
+//                    SetupCategory(configFile, plugin.Instance, plugin.Instance.Info.Metadata);
+//            }
+//#endif
+        }
+
+        static void ProcessConfigFile(CachedConfigFile cachedConfig)
+        {
+            SetupCategory(cachedConfig.configFile, null, cachedConfig.metadata);
         }
 
         internal static void SetupCategory(ConfigFile configFile, object plugin, BepInPlugin meta, bool forceAdvanced = false)

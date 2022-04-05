@@ -19,7 +19,7 @@
   <!-- IL2CPP -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_IL2CPP|AnyCPU' ">
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <OutputPath>..\Release\BepInExConfigManager.Il2Cpp\</OutputPath>
+    <OutputPath>..\Release\BepInExConfigManager.Il2Cpp\plugins\</OutputPath>
     <DefineConstants>CPP</DefineConstants>
     <AssemblyName>BepInExConfigManager.Il2Cpp</AssemblyName>
     <IsCpp>true</IsCpp>
@@ -28,7 +28,7 @@
   <!-- MONO -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_Mono|AnyCPU' ">
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <OutputPath>..\Release\BepInExConfigManager.Mono\</OutputPath>
+    <OutputPath>..\Release\BepInExConfigManager.Mono\plugins\</OutputPath>
     <DefineConstants>MONO</DefineConstants>
     <AssemblyName>BepInExConfigManager.Mono</AssemblyName>
     <Prefer32Bit>false</Prefer32Bit>
@@ -37,7 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\lib\0Harmony.dll</HintPath>
+      <HintPath>..\packages\HarmonyX.2.5.2\lib\net35\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -63,12 +63,14 @@
     </Reference>
     <Reference Include="UniverseLib.Mono">
       <HintPath>packages\UniverseLib.1.2.17\lib\net35\UniverseLib.Mono.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <!-- Il2Cpp refs -->
   <ItemGroup Condition="'$(IsCpp)'=='true'">
     <Reference Include="UniverseLib.IL2CPP">
       <HintPath>packages\UniverseLib.1.2.17\lib\net472\UniverseLib.IL2CPP.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx.Core">
       <HintPath>..\lib\BepInEx.Core.dll</HintPath>
@@ -143,6 +145,13 @@
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="packages\UniverseLib.Analyzers.1.0.3\analyzers\dotnet\cs\UniverseLib.Analyzers.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\src_patcher\BepInExConfigManager.Patcher.csproj">
+      <Project>{beabe9b7-0c1c-4071-a99c-1ced983287e9}</Project>
+      <Name>BepInExConfigManager.Patcher</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

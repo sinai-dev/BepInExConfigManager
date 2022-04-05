@@ -19,7 +19,7 @@ namespace ConfigManager
 {
     public static class ConfigManager
     {
-        internal static Harmony Harmony { get; } = new Harmony(ConfigManagerPlugin.GUID);
+        internal static Harmony Harmony { get; } = new(ConfigManagerPlugin.GUID);
         internal static ManualLogSource Log => ConfigManagerPlugin.LogSource;
 
         // Internal config
@@ -27,7 +27,6 @@ namespace ConfigManager
         internal static string CTG = "Settings";
         internal static ConfigEntry<KeyCode> Main_Menu_Toggle;
         internal static ConfigEntry<bool> Auto_Save_Configs;
-        //internal static ConfigEntry<float> UI_Scale;
         internal static ConfigEntry<float> Startup_Delay;
         internal static ConfigEntry<bool> Disable_EventSystem_Override;
 
