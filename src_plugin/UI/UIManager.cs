@@ -66,7 +66,7 @@ namespace ConfigManager.UI
 
         internal static void Init()
         {
-            uiBase = UniversalUI.RegisterUI(ConfigManagerPlugin.GUID, Update);
+            uiBase = UniversalUI.RegisterUI(ConfigManagerPlugin.GUID, null);
 
             CreateMenu();
 
@@ -79,8 +79,149 @@ namespace ConfigManager.UI
             SetupCategories();
         }
 
-        internal static void Update()
+        internal static void SetupCategories()
         {
+#if CPP
+            ConfigFile coreConfig = ConfigFile.CoreConfig;
+#else
+            ConfigFile coreConfig = (ConfigFile)AccessTools.Property(typeof(ConfigFile), "CoreConfig").GetValue(null, null);
+#endif
+            if (coreConfig != null)
+                SetupCategory(coreConfig, null, new BepInPlugin("bepinex.core.config", "BepInEx", "1.0"), true);
+
+            foreach (var cachedConfig in Patcher.ConfigFiles)
+                ProcessConfigFile(cachedConfig);
+
+            Patcher.ConfigFileCreated += ProcessConfigFile;
+
+        }
+
+        static void ProcessConfigFile(CachedConfigFile cachedConfig)
+        {
+            SetupCategory(cachedConfig.configFile, null, cachedConfig.metadata);
+        }
+
+        internal static void SetupCategory(ConfigFile configFile, object plugin, BepInPlugin meta, bool forceAdvanced = false)
+        {
+            try
+            {
+#if CPP
+                var basePlugin = plugin as BasePlugin;
+#else
+                var basePlugin = plugin as BaseUnityPlugin;
+#endif
+                if (!forceAdvanced && basePlugin != null)
+                {
+                    var type = basePlugin.GetType();
+                    if (type.GetCustomAttributes(typeof(BrowsableAttribute), false)
+                                              .Cast<BrowsableAttribute>()
+                                              .Any(it => !it.Browsable))
+                    {
+                        forceAdvanced = true;
+                    }
+                }
+
+                var info = new ConfigFileInfo()
+                {
+                    RefConfigFile = configFile,
+                };
+
+                // List button
+
+                var btn = UIFactory.CreateButton(CategoryListContent, "BUTTON_" + meta.GUID, meta.Name);
+                btn.OnClick += () => { SetActiveCategory(meta.GUID); };
+                UIFactory.SetLayoutElement(btn.Component.gameObject, flexibleWidth: 9999, minHeight: 30, flexibleHeight: 0);
+
+                RuntimeHelper.SetColorBlock(btn.Component, _normalInactiveColor, new Color(0.6f, 0.55f, 0.45f),
+                    new Color(0.20f, 0.18f, 0.15f));
+
+                info.listButton = btn;
+
+                // Editor content
+
+                var content = UIFactory.CreateVerticalGroup(ConfigEditorContent, "CATEGORY_" + meta.GUID,
+                    true, false, true, true, 4, default, new Color(0.05f, 0.05f, 0.05f));
+
+                var dict = new Dictionary<string, List<ConfigEntryBase>>
+                {
+                    { "", new List<ConfigEntryBase>() } // make sure the null category is first.
+                };
+
+                // Iterate and prepare categories
+                foreach (var entry in configFile.Keys)
+                {
+                    string sec = entry.Section;
+                    if (sec == null)
+                        sec = "";
+
+                    if (!dict.ContainsKey(sec))
+                        dict.Add(sec, new List<ConfigEntryBase>());
+
+                    dict[sec].Add(configFile[entry]);
+                }
+
+                // Create actual entry editors
+                foreach (var ctg in dict)
+                {
+                    if (!string.IsNullOrEmpty(ctg.Key))
+                    {
+                        var bg = UIFactory.CreateHorizontalGroup(content, "TitleBG", true, true, true, true, 0, default,
+                            new Color(0.07f, 0.07f, 0.07f));
+                        var title = UIFactory.CreateLabel(bg, $"Title_{ctg.Key}", ctg.Key, TextAnchor.MiddleCenter, default, true, 17);
+                        UIFactory.SetLayoutElement(title.gameObject, minHeight: 30, minWidth: 200, flexibleWidth: 9999);
+                    }
+
+                    foreach (var configEntry in ctg.Value)
+                    {
+                        var cache = new CachedConfigEntry(configEntry, content);
+                        cache.Enable();
+
+                        var obj = cache.UIroot;
+
+                        bool advanced = forceAdvanced;
+
+                        if (!advanced)
+                        {
+                            var tags = configEntry.Description?.Tags;
+                            if (tags != null && tags.Any())
+                            {
+                                if (tags.Any(it => it is string s && s == "Advanced"))
+                                {
+                                    advanced = true;
+                                }
+                                else if (tags.FirstOrDefault(it => it.GetType().Name == "ConfigurationManagerAttributes") is object attributes)
+                                {
+                                    advanced = (bool?)attributes.GetType().GetField("IsAdvanced")?.GetValue(attributes) == true;
+                                }
+                            }
+                        }
+
+                        info.Entries.Add(new EntryInfo(cache)
+                        {
+                            RefEntry = configEntry,
+                            content = obj,
+                            IsHidden = advanced
+                        });
+                    }
+                }
+
+                // hide buttons for completely-hidden categories.
+                if (!info.Entries.Any(it => !it.IsHidden))
+                {
+                    btn.Component.gameObject.SetActive(false);
+                    info.isCompletelyHidden = true;
+                }
+
+                content.SetActive(false);
+
+                info.contentObj = content;
+
+                _categoryInfos.Add(meta.GUID, info);
+            }
+            catch (Exception ex)
+            {
+                ConfigManager.Log.LogWarning($"Exception setting up category '{meta.GUID}'!\r\n{ex}");
+            }
         }
 
         public static UIManager Instance { get; internal set; }
@@ -320,171 +461,6 @@ namespace ConfigManager.UI
             var editor = UIFactory.CreateScrollView(horiGroup, "ConfigEditor", out GameObject editorContent, out _, new Color(0.05f, 0.05f, 0.05f));
             UIFactory.SetLayoutElement(editor, flexibleWidth: 9999);
             ConfigEditorContent = editorContent;
-        }
-
-        // wait for end of chainloader setup. mods that set up preferences after this aren't compatible atm.
-        // Also, stray ConfigFiles defined manually will not be found either.
-        internal static void SetupCategories()
-        {
-#if CPP
-            ConfigFile coreConfig = ConfigFile.CoreConfig;
-#else
-            ConfigFile coreConfig = (ConfigFile)AccessTools.Property(typeof(ConfigFile), "CoreConfig").GetValue(null, null);
-#endif
-            if (coreConfig != null)
-                SetupCategory(coreConfig, null, new BepInPlugin("bepinex.core.config", "BepInEx", "1.0"), true);
-
-            foreach (var cachedConfig in Patcher.ConfigFiles)
-                ProcessConfigFile(cachedConfig);
-
-            Patcher.ConfigFileCreated += ProcessConfigFile;
-
-//#if CPP
-//            foreach (var plugin in IL2CPPChainloader.Instance.Plugins.Values)
-//            {
-//                var configFile = (plugin.Instance as BasePlugin)?.Config;
-//                if (configFile != null && configFile.Keys.Any())
-//                    SetupCategory(configFile, plugin.Instance, plugin.Metadata);
-//            }
-//#else
-//            foreach (var plugin in BepInEx.Bootstrap.Chainloader.PluginInfos.Values)
-//            {
-//                if (plugin.Instance?.Info?.Metadata == null)
-//                    continue;
-//
-//                var configFile = plugin.Instance.Config;
-//                if (configFile != null && configFile.Keys.Any())
-//                    SetupCategory(configFile, plugin.Instance, plugin.Instance.Info.Metadata);
-//            }
-//#endif
-        }
-
-        static void ProcessConfigFile(CachedConfigFile cachedConfig)
-        {
-            SetupCategory(cachedConfig.configFile, null, cachedConfig.metadata);
-        }
-
-        internal static void SetupCategory(ConfigFile configFile, object plugin, BepInPlugin meta, bool forceAdvanced = false)
-        {
-            try
-            {
-#if CPP
-                var basePlugin = plugin as BasePlugin;
-#else
-                var basePlugin = plugin as BaseUnityPlugin;
-#endif
-                if (!forceAdvanced && basePlugin != null)
-                {
-                    var type = basePlugin.GetType();
-                    if (type.GetCustomAttributes(typeof(BrowsableAttribute), false)
-                                              .Cast<BrowsableAttribute>()
-                                              .Any(it => !it.Browsable))
-                    {
-                        forceAdvanced = true;
-                    }
-                }
-
-                var info = new ConfigFileInfo()
-                {
-                    RefConfigFile = configFile,
-                };
-
-                // List button
-
-                var btn = UIFactory.CreateButton(CategoryListContent, "BUTTON_" + meta.GUID, meta.Name);
-                btn.OnClick += () => { SetActiveCategory(meta.GUID); };
-                UIFactory.SetLayoutElement(btn.Component.gameObject, flexibleWidth: 9999, minHeight: 30, flexibleHeight: 0);
-
-                RuntimeHelper.SetColorBlock(btn.Component, _normalInactiveColor, new Color(0.6f, 0.55f, 0.45f),
-                    new Color(0.20f, 0.18f, 0.15f));
-
-                info.listButton = btn;
-
-                // Editor content
-
-                var content = UIFactory.CreateVerticalGroup(ConfigEditorContent, "CATEGORY_" + meta.GUID,
-                    true, false, true, true, 4, default, new Color(0.05f, 0.05f, 0.05f));
-
-                var dict = new Dictionary<string, List<ConfigEntryBase>>
-                {
-                    { "", new List<ConfigEntryBase>() } // make sure the null category is first.
-                };
-
-                // Iterate and prepare categories
-                foreach (var entry in configFile.Keys)
-                {
-                    string sec = entry.Section;
-                    if (sec == null)
-                        sec = "";
-
-                    if (!dict.ContainsKey(sec))
-                        dict.Add(sec, new List<ConfigEntryBase>());
-
-                    dict[sec].Add(configFile[entry]);
-                }
-
-                // Create actual entry editors
-                foreach (var ctg in dict)
-                {
-                    if (!string.IsNullOrEmpty(ctg.Key))
-                    {
-                        var bg = UIFactory.CreateHorizontalGroup(content, "TitleBG", true, true, true, true, 0, default,
-                            new Color(0.07f, 0.07f, 0.07f));
-                        var title = UIFactory.CreateLabel(bg, $"Title_{ctg.Key}", ctg.Key, TextAnchor.MiddleCenter, default, true, 17);
-                        UIFactory.SetLayoutElement(title.gameObject, minHeight: 30, minWidth: 200, flexibleWidth: 9999);
-                    }
-
-                    foreach (var configEntry in ctg.Value)
-                    {
-                        var cache = new CachedConfigEntry(configEntry, content);
-                        cache.Enable();
-
-                        var obj = cache.UIroot;
-
-                        bool advanced = forceAdvanced;
-
-                        if (!advanced)
-                        {
-                            var tags = configEntry.Description?.Tags;
-                            if (tags != null && tags.Any())
-                            {
-                                if (tags.Any(it => it is string s && s == "Advanced"))
-                                {
-                                    advanced = true;
-                                }
-                                else if (tags.FirstOrDefault(it => it.GetType().Name == "ConfigurationManagerAttributes") is object attributes)
-                                {
-                                    advanced = (bool?)attributes.GetType().GetField("IsAdvanced")?.GetValue(attributes) == true;
-                                }
-                            }
-                        }
-
-                        info.Entries.Add(new EntryInfo(cache)
-                        {
-                            RefEntry = configEntry,
-                            content = obj,
-                            IsHidden = advanced
-                        });
-                    }
-                }
-
-                // hide buttons for completely-hidden categories.
-                if (!info.Entries.Any(it => !it.IsHidden))
-                {
-                    btn.Component.gameObject.SetActive(false);
-                    info.isCompletelyHidden = true;
-                }
-
-                content.SetActive(false);
-
-                info.contentObj = content;
-
-                _categoryInfos.Add(meta.GUID, info);
-            }
-            catch (Exception ex)
-            {
-                ConfigManager.Log.LogWarning($"Exception setting up category '{meta.GUID}'!\r\n{ex}");
-            }
         }
     }
 }

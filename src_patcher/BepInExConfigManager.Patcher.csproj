@@ -28,7 +28,7 @@
         <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
         <OutputPath>..\Release\BepInExConfigManager.Mono\patchers\</OutputPath>
         <DefineConstants>MONO</DefineConstants>
-        <AssemblyName>BepInExConfigManager.Mono</AssemblyName>
+        <AssemblyName>BepInExConfigManager.Mono.Patcher</AssemblyName>
         <Prefer32Bit>false</Prefer32Bit>
         <IsCpp>false</IsCpp>
         <PlatformTarget>x64</PlatformTarget>
