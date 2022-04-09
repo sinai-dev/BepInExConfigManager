@@ -60,13 +60,13 @@ namespace ConfigManager.UI
                 if (uiBase == null || !UIRoot || uiBase.Enabled == value)
                     return;
 
-                UniversalUI.SetUIActive(ConfigManagerPlugin.GUID, value);
+                UniversalUI.SetUIActive(ConfigManager.GUID, value);
             }
         }
 
         internal static void Init()
         {
-            uiBase = UniversalUI.RegisterUI(ConfigManagerPlugin.GUID, null);
+            uiBase = UniversalUI.RegisterUI(ConfigManager.GUID, null);
 
             CreateMenu();
 
@@ -227,7 +227,7 @@ namespace ConfigManager.UI
             }
             catch (Exception ex)
             {
-                ConfigManager.Log.LogWarning($"Exception setting up category '{meta.GUID}'!\r\n{ex}");
+                ConfigManager.LogSource.LogWarning($"Exception setting up category '{meta.GUID}'!\r\n{ex}");
             }
         }
 
@@ -256,7 +256,7 @@ namespace ConfigManager.UI
         {
             if (Instance != null)
             {
-                ConfigManager.Log.LogWarning("An instance of ConfigurationEditor already exists, cannot create another!");
+                ConfigManager.LogSource.LogWarning("An instance of ConfigurationEditor already exists, cannot create another!");
                 return;
             }
 
@@ -405,7 +405,7 @@ namespace ConfigManager.UI
             // Main title label
 
             var text = UIFactory.CreateLabel(titleBar, "TitleLabel", $"<b><color=#8b736b>BepInEx Config Manager</color></b> " +
-                $"<i><color=#ffe690>v{ConfigManagerPlugin.VERSION}</color></i>", 
+                $"<i><color=#ffe690>v{ConfigManager.VERSION}</color></i>", 
                 TextAnchor.MiddleLeft, default, true, 15);
             UIFactory.SetLayoutElement(text.gameObject, flexibleWidth: 5000);
 

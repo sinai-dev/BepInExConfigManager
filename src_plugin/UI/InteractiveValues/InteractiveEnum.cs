@@ -60,8 +60,8 @@ namespace ConfigManager.UI.InteractiveValues
                     }
                     catch (Exception ex)
                     {
-                        ConfigManager.Log.LogWarning("[InteractiveEnum] Could not Unbox underlying type " + backingType.Name + " from " + type.FullName);
-                        ConfigManager.Log.LogMessage(ex.ToString());
+                        ConfigManager.LogSource.LogWarning("[InteractiveEnum] Could not Unbox underlying type " + backingType.Name + " from " + type.FullName);
+                        ConfigManager.LogSource.LogMessage(ex.ToString());
                         continue;
                     }
 

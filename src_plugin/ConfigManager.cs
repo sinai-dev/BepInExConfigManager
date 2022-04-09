@@ -1,26 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using ConfigManager;
 using ConfigManager.UI;
-using UnityEngine;
 using HarmonyLib;
-using ConfigManager.Utility;
+using UnityEngine;
 using UniverseLib.Input;
 
 namespace ConfigManager
 {
-    public static class ConfigManager
+    [BepInPlugin(GUID, NAME, VERSION)]
+    public class ConfigManager
+#if MONO
+        : BaseUnityPlugin
+#else
+        : BepInEx.IL2CPP.BasePlugin
+#endif
     {
-        internal static Harmony Harmony { get; } = new(ConfigManagerPlugin.GUID);
-        internal static ManualLogSource Log => ConfigManagerPlugin.LogSource;
+        public const string GUID = "com.sinai.BepInExConfigManager";
+        public const string NAME = "BepInExConfigManager";
+        public const string AUTHOR = "Sinai";
+        public const string VERSION = "1.1.1";
+
+        public static ConfigManager Instance { get; private set; }
+
+        public static ManualLogSource LogSource =>
+#if MONO
+            Instance.Logger;
+#else
+            Instance.Log;
+#endif
+
+        internal static Harmony Harmony { get; } = new(GUID);
 
         // Internal config
         internal const string CTG_ID = "BepInExConfigManager";
@@ -29,6 +44,41 @@ namespace ConfigManager
         internal static ConfigEntry<bool> Auto_Save_Configs;
         internal static ConfigEntry<float> Startup_Delay;
         internal static ConfigEntry<bool> Disable_EventSystem_Override;
+
+#if MONO
+        internal void Awake()
+        {
+            Instance = this;
+            Init();
+        }
+
+        internal void Update()
+        {
+            DoUpdate();
+        }
+#else
+        public override void Load()
+        {
+            Instance = this;
+
+            UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<DummyBehaviour>();
+            var obj = new GameObject("ConfigManagerBehaviour");
+            GameObject.DontDestroyOnLoad(obj);
+            obj.hideFlags |= HideFlags.HideAndDontSave;
+            obj.AddComponent<DummyBehaviour>();
+            Init();
+        }
+
+        public class DummyBehaviour : MonoBehaviour
+        {
+            public DummyBehaviour(IntPtr ptr) : base(ptr) { }
+
+            internal void Update()
+            {
+                DoUpdate();
+            }
+        }
+#endif
 
         public static void Init()
         {
@@ -47,7 +97,7 @@ namespace ConfigManager
             UIManager.Init();
         }
 
-        public static void Update()
+        public static void DoUpdate()
         {
             if (!UIManager.UIRoot)
                 return;
@@ -58,11 +108,11 @@ namespace ConfigManager
 
         public static void InitConfig()
         {
-            Main_Menu_Toggle = ConfigManagerPlugin.Instance.Config.Bind(new ConfigDefinition(CTG, "Main Menu Toggle"), 
-                KeyCode.F5, 
+            Main_Menu_Toggle = Instance.Config.Bind(new ConfigDefinition(CTG, "Main Menu Toggle"),
+                KeyCode.F5,
                 new ConfigDescription("The toggle for the Config Manager menu"));
 
-            Auto_Save_Configs = ConfigManagerPlugin.Instance.Config.Bind(new ConfigDefinition(CTG, "Auto-save settings"),
+            Auto_Save_Configs = Instance.Config.Bind(new ConfigDefinition(CTG, "Auto-save settings"),
                 false,
                 new ConfigDescription("Automatically save settings after changing them? This will mean the undo feature will be unavailable."));
             Auto_Save_Configs.SettingChanged += Auto_Save_Configs_SettingChanged;
@@ -73,10 +123,10 @@ namespace ConfigManager
             //
             //UI_Scale.SettingChanged += UiScale_SettingChanged;
 
-            Startup_Delay = ConfigManagerPlugin.Instance.Config.Bind(CTG, "Startup Delay", 1f, 
+            Startup_Delay = Instance.Config.Bind(CTG, "Startup Delay", 1f,
                 "Delays the core startup process. Adjust it if you experience issues.");
 
-            Disable_EventSystem_Override = ConfigManagerPlugin.Instance.Config.Bind(CTG, "Disable EventSystem Override", false,
+            Disable_EventSystem_Override = Instance.Config.Bind(CTG, "Disable EventSystem Override", false,
                 "Disables the overriding of the EventSystem from the game, if you experience issues with UI Input.");
             Disable_EventSystem_Override.SettingChanged += Disable_EventSystem_Override_SettingChanged;
 
@@ -106,15 +156,15 @@ namespace ConfigManager
             switch (logType)
             {
                 case LogType.Log:
-                    Log.LogMessage(log);
+                    LogSource.LogMessage(log);
                     return;
                 case LogType.Warning:
                 case LogType.Assert:
-                    Log.LogWarning(log);
+                    LogSource.LogWarning(log);
                     return;
                 case LogType.Error:
                 case LogType.Exception:
-                    Log.LogError(log);
+                    LogSource.LogError(log);
                     return;
             }
         }
