@@ -15,53 +15,86 @@ using UniverseLib;
 using UniverseLib.UI.Models;
 using UniverseLib.Utility;
 using HarmonyLib;
+using UniverseLib.UI.Panels;
 #if CPP
 using BepInEx.IL2CPP;
 #endif
 
 namespace ConfigManager.UI
 {
-    public class UIManager
+    internal class ConfigFileInfo
     {
-        internal class ConfigFileInfo
-        {
-            public ConfigFile RefConfigFile;
+        public ConfigFile RefConfigFile;
 
-            private List<EntryInfo> entries = new();
+        private List<EntryInfo> entries = new();
 
-            internal bool isCompletelyHidden;
-            internal ButtonRef listButton;
-            internal GameObject contentObj;
+        internal bool isCompletelyHidden;
+        internal ButtonRef listButton;
+        internal GameObject contentObj;
 
-            internal IEnumerable<GameObject> HiddenEntries 
-                => Entries.Where(it => it.IsHidden).Select(it => it.content);
+        internal IEnumerable<GameObject> HiddenEntries
+            => Entries.Where(it => it.IsHidden).Select(it => it.content);
 
-            internal List<EntryInfo> Entries { get => entries; set => entries = value; }
-        }
+        internal List<EntryInfo> Entries { get => entries; set => entries = value; }
+    }
 
-        internal class EntryInfo
-        {
-            public EntryInfo(CachedConfigEntry cached) { Cached = cached; }
-            public CachedConfigEntry Cached { get; }
-            public ConfigEntryBase RefEntry;
-            public bool IsHidden { get; internal set; }
+    internal class EntryInfo
+    {
+        public EntryInfo(CachedConfigEntry cached) { Cached = cached; }
+        public CachedConfigEntry Cached { get; }
+        public ConfigEntryBase RefEntry;
+        public bool IsHidden { get; internal set; }
 
-            internal GameObject content;
-        }
+        internal GameObject content;
+    }
 
-        private static UIBase uiBase;
-        public static GameObject UIRoot => uiBase?.RootObject;
+    public class UIManager : PanelBase
+    {
+        public static UIManager Instance { get; internal set; }
+
+        internal static UIBase uiBase;
+
+        public override string Name => $"<b>{ConfigManager.NAME}</b> <i>{ConfigManager.VERSION}</i>";
+
+        public override int MinWidth => 750;
+        public override int MinHeight => 750;
+        public override Vector2 DefaultAnchorMin => new(0.2f, 0.02f);
+        public override Vector2 DefaultAnchorMax => new(0.8f, 0.98f);
 
         public static bool ShowMenu
         {
             get => uiBase != null && uiBase.Enabled;
             set
             {
-                if (uiBase == null || !UIRoot || uiBase.Enabled == value)
+                if (uiBase == null || !uiBase.RootObject || uiBase.Enabled == value)
                     return;
 
                 UniversalUI.SetUIActive(ConfigManager.GUID, value);
             }
+        }
+
+        public static bool ShowHiddenConfigs { get; internal set; }
+
+        //internal static GameObject MainPanel;
+        internal static GameObject CategoryListContent;
+        internal static GameObject ConfigEditorContent;
+
+        internal static string Filter => currentFilter ?? "";
+
+        private static string currentFilter;
+
+        private static readonly HashSet<CachedConfigEntry> editingEntries = new();
+        internal static ButtonRef saveButton;
+
+        private static readonly Dictionary<string, ConfigFileInfo> _categoryInfos = new();
+        private static ConfigFileInfo _currentCategory;
+
+        private static Color _normalInactiveColor = new(0.38f, 0.34f, 0.34f);
+        private static Color _normalActiveColor = UnityHelpers.ToColor("c2b895");
+
+        public UIManager(UIBase owner) : base(owner)
+        {
+            Instance = this;
         }
 
         internal static void Init()
@@ -74,7 +107,6 @@ namespace ConfigManager.UI
             Canvas.ForceUpdateCanvases();
 
             ShowMenu = false;
-            //CanvasRoot.GetComponent<Canvas>().scaleFactor = ConfigManager.UI_Scale.Value;
 
             SetupCategories();
         }
@@ -231,26 +263,6 @@ namespace ConfigManager.UI
             }
         }
 
-        public static UIManager Instance { get; internal set; }
-
-        public static bool ShowHiddenConfigs { get; internal set; }
-
-        internal static GameObject MainPanel;
-        internal static GameObject CategoryListContent;
-        internal static GameObject ConfigEditorContent;
-
-        internal static string Filter => currentFilter ?? "";
-        private static string currentFilter;
-
-        private static readonly HashSet<CachedConfigEntry> editingEntries = new();
-        internal static ButtonRef saveButton;
-
-        private static readonly Dictionary<string, ConfigFileInfo> _categoryInfos = new();
-        private static ConfigFileInfo _currentCategory;
-
-        private static Color _normalInactiveColor = new(0.38f, 0.34f, 0.34f);
-        private static Color _normalActiveColor = UnityHelpers.ToColor("c2b895");
-
         // called by UIManager.Init
         internal static void CreateMenu()
         {
@@ -260,8 +272,7 @@ namespace ConfigManager.UI
                 return;
             }
 
-            Instance = new UIManager();
-            Instance.ConstructMenu();
+            new UIManager(uiBase);
         }
 
         public static void OnEntryEdit(CachedConfigEntry entry)
@@ -375,58 +386,37 @@ namespace ConfigManager.UI
             _currentCategory = null;
         }
 
-        private void ConstructMenu()
+        protected override void ConstructPanelContent()
         {
-            MainPanel = UIFactory.CreatePanel("MainMenu", UIRoot, out GameObject panelContent);
+            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(ContentRoot, true, false, true, true);
 
-            var rect = MainPanel.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.2f, 0.02f);
-            rect.anchorMax = new Vector2(0.8f, 0.98f);
-            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 1000);
+            ConstructTitleBar();
 
-            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(panelContent, true, false, true, true);
+            ConstructSaveButton();
 
-            ConstructTitleBar(panelContent);
+            ConstructToolbar();
 
-            ConstructSaveButton(panelContent);
-
-            ConstructToolbar(panelContent);
-
-            ConstructEditorViewport(panelContent);
+            ConstructEditorViewport();
         }
 
-        private void ConstructTitleBar(GameObject content)
+        private void ConstructTitleBar()
         {
-            // Core title bar holder
+            Text titleText = TitleBar.transform.GetChild(0).GetComponent<Text>();
+            titleText.text = $"<b><color=#8b736b>BepInExConfigManager</color></b> <i><color=#ffe690>v{ConfigManager.VERSION}</color></i>";
 
-            GameObject titleBar = UIFactory.CreateHorizontalGroup(content, "MainTitleBar", false, false, true, true, 0, new Vector4(3, 3, 15, 3));
-            UIFactory.SetLayoutElement(titleBar, minWidth: 25, minHeight: 30, flexibleHeight: 0);
+            Button closeButton = TitleBar.GetComponentInChildren<Button>();
+            RuntimeHelper.SetColorBlock(closeButton, new(1, 0.2f, 0.2f), new(1, 0.6f, 0.6f), new(0.3f, 0.1f, 0.1f));
 
-            // Main title label
-
-            var text = UIFactory.CreateLabel(titleBar, "TitleLabel", $"<b><color=#8b736b>BepInEx Config Manager</color></b> " +
-                $"<i><color=#ffe690>v{ConfigManager.VERSION}</color></i>", 
-                TextAnchor.MiddleLeft, default, true, 15);
-            UIFactory.SetLayoutElement(text.gameObject, flexibleWidth: 5000);
-
-            // Hide button
-
-            var hideButton = UIFactory.CreateButton(titleBar, "HideButton", $"X");
-            hideButton.OnClick += () => { ShowMenu = false; };
-            UIFactory.SetLayoutElement(hideButton.Component.gameObject, minWidth: 25, preferredWidth: 25, flexibleWidth: 25, flexibleHeight: 25);
-            RuntimeHelper.SetColorBlock(hideButton.Component, new Color(1, 0.2f, 0.2f),
-                new Color(1, 0.6f, 0.6f), new Color(0.3f, 0.1f, 0.1f));
-
-            Text hideText = hideButton.Component.GetComponentInChildren<Text>();
+            Text hideText = closeButton.GetComponentInChildren<Text>();
             hideText.color = Color.white;
             hideText.resizeTextForBestFit = true;
             hideText.resizeTextMinSize = 8;
             hideText.resizeTextMaxSize = 14;
         }
 
-        private void ConstructSaveButton(GameObject mainContent)
+        private void ConstructSaveButton()
         {
-            saveButton = UIFactory.CreateButton(mainContent, "SaveButton", "Save Preferences");
+            saveButton = UIFactory.CreateButton(ContentRoot, "SaveButton", "Save Preferences");
             saveButton.OnClick += SavePreferences;
             UIFactory.SetLayoutElement(saveButton.Component.gameObject, minHeight: 35, flexibleHeight: 0, flexibleWidth: 9999);
             RuntimeHelper.SetColorBlock(saveButton.Component, new Color(0.1f, 0.3f, 0.1f),
@@ -437,9 +427,9 @@ namespace ConfigManager.UI
             saveButton.Component.gameObject.SetActive(!ConfigManager.Auto_Save_Configs.Value);
         }
 
-        private void ConstructToolbar(GameObject parent)
+        private void ConstructToolbar()
         {
-            var toolbarGroup = UIFactory.CreateHorizontalGroup(parent, "Toolbar", false, false, true, true, 4, new Vector4(3, 3, 3, 3),
+            var toolbarGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "Toolbar", false, false, true, true, 4, new Vector4(3, 3, 3, 3),
                 new Color(0.1f, 0.1f, 0.1f));
 
             var toggleObj = UIFactory.CreateToggle(toolbarGroup, "HiddenConfigsToggle", out Toggle toggle, out Text toggleText);
@@ -456,9 +446,9 @@ namespace ConfigManager.UI
             inputField.OnValueChanged += FilterConfigs;
         }
 
-        private void ConstructEditorViewport(GameObject mainContent)
+        private void ConstructEditorViewport()
         {
-            var horiGroup = UIFactory.CreateHorizontalGroup(mainContent, "Main", true, true, true, true, 2, default, new Color(0.08f, 0.08f, 0.08f));
+            var horiGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "Main", true, true, true, true, 2, default, new Color(0.08f, 0.08f, 0.08f));
 
             var ctgList = UIFactory.CreateScrollView(horiGroup, "CategoryList", out GameObject ctgContent, out _, new Color(0.1f, 0.1f, 0.1f));
             UIFactory.SetLayoutElement(ctgList, minWidth: 300, flexibleWidth: 0);

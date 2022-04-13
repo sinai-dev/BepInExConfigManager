@@ -24,7 +24,7 @@ namespace ConfigManager
         public const string GUID = "com.sinai.BepInExConfigManager";
         public const string NAME = "BepInExConfigManager";
         public const string AUTHOR = "Sinai";
-        public const string VERSION = "1.1.2";
+        public const string VERSION = "1.2.0";
 
         public static ConfigManager Instance { get; private set; }
 
@@ -61,17 +61,17 @@ namespace ConfigManager
         {
             Instance = this;
 
-            UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<DummyBehaviour>();
+            UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<ManagerBehaviour>();
             var obj = new GameObject("ConfigManagerBehaviour");
             GameObject.DontDestroyOnLoad(obj);
             obj.hideFlags |= HideFlags.HideAndDontSave;
-            obj.AddComponent<DummyBehaviour>();
+            obj.AddComponent<ManagerBehaviour>();
             Init();
         }
 
-        public class DummyBehaviour : MonoBehaviour
+        public class ManagerBehaviour : MonoBehaviour
         {
-            public DummyBehaviour(IntPtr ptr) : base(ptr) { }
+            public ManagerBehaviour(IntPtr ptr) : base(ptr) { }
 
             internal void Update()
             {
@@ -99,7 +99,7 @@ namespace ConfigManager
 
         public static void DoUpdate()
         {
-            if (!UIManager.UIRoot)
+            if (UIManager.uiBase == null)
                 return;
 
             if (InputManager.GetKeyDown(Main_Menu_Toggle.Value))

@@ -61,15 +61,15 @@
       <HintPath>..\lib\mono\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
-      <Reference Include="UniverseLib.Mono, Version=1.3.2.0, Culture=neutral, processorArchitecture=MSIL">
-          <HintPath>..\packages\UniverseLib.Mono.1.3.2\lib\net35\UniverseLib.Mono.dll</HintPath>
-      </Reference>
+    <Reference Include="UniverseLib.Mono">
+      <HintPath>..\packages\UniverseLib.Mono.1.3.3\lib\net35\UniverseLib.Mono.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <!-- Il2Cpp refs -->
   <ItemGroup Condition="'$(IsCpp)'=='true'">
-      <Reference Include="UniverseLib.IL2CPP, Version=1.3.2.0, Culture=neutral, processorArchitecture=MSIL">
-          <HintPath>..\packages\UniverseLib.IL2CPP.1.3.2\lib\net472\UniverseLib.IL2CPP.dll</HintPath>
-      </Reference>
+    <Reference Include="UniverseLib.IL2CPP">
+      <HintPath>..\packages\UniverseLib.IL2CPP.1.3.3\lib\net472\UniverseLib.IL2CPP.dll</HintPath>
+    </Reference>
     <Reference Include="BepInEx.Core">
       <HintPath>..\lib\BepInEx.Core.dll</HintPath>
       <Private>False</Private>
