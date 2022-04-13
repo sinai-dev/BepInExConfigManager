@@ -16,6 +16,7 @@ using UniverseLib.UI.Models;
 using UniverseLib.Utility;
 using HarmonyLib;
 using UniverseLib.UI.Panels;
+using System.IO;
 #if CPP
 using BepInEx.IL2CPP;
 #endif
@@ -144,17 +145,21 @@ namespace ConfigManager.UI
         {
             try
             {
+                string GUID = meta?.GUID ?? Path.GetFileNameWithoutExtension(configFile.ConfigFilePath);
+                string name = meta?.Name ?? GUID;
+
 #if CPP
                 var basePlugin = plugin as BasePlugin;
 #else
                 var basePlugin = plugin as BaseUnityPlugin;
 #endif
+
                 if (!forceAdvanced && basePlugin != null)
                 {
-                    var type = basePlugin.GetType();
+                    Type type = basePlugin.GetType();
                     if (type.GetCustomAttributes(typeof(BrowsableAttribute), false)
-                                              .Cast<BrowsableAttribute>()
-                                              .Any(it => !it.Browsable))
+                            .Cast<BrowsableAttribute>()
+                            .Any(it => !it.Browsable))
                     {
                         forceAdvanced = true;
                     }
@@ -167,8 +172,8 @@ namespace ConfigManager.UI
 
                 // List button
 
-                var btn = UIFactory.CreateButton(CategoryListContent, "BUTTON_" + meta.GUID, meta.Name);
-                btn.OnClick += () => { SetActiveCategory(meta.GUID); };
+                var btn = UIFactory.CreateButton(CategoryListContent, "BUTTON_" + GUID, name);
+                btn.OnClick += () => { SetActiveCategory(GUID); };
                 UIFactory.SetLayoutElement(btn.Component.gameObject, flexibleWidth: 9999, minHeight: 30, flexibleHeight: 0);
 
                 RuntimeHelper.SetColorBlock(btn.Component, _normalInactiveColor, new Color(0.6f, 0.55f, 0.45f),
@@ -178,7 +183,7 @@ namespace ConfigManager.UI
 
                 // Editor content
 
-                var content = UIFactory.CreateVerticalGroup(ConfigEditorContent, "CATEGORY_" + meta.GUID,
+                var content = UIFactory.CreateVerticalGroup(ConfigEditorContent, "CATEGORY_" + GUID,
                     true, false, true, true, 4, default, new Color(0.05f, 0.05f, 0.05f));
 
                 var dict = new Dictionary<string, List<ConfigEntryBase>>
@@ -255,11 +260,20 @@ namespace ConfigManager.UI
 
                 info.contentObj = content;
 
-                _categoryInfos.Add(meta.GUID, info);
+                _categoryInfos.Add(GUID, info);
             }
             catch (Exception ex)
             {
-                ConfigManager.LogSource.LogWarning($"Exception setting up category '{meta.GUID}'!\r\n{ex}");
+                if (meta != null)
+                    ConfigManager.LogSource.LogWarning($"Exception setting up category '{meta.GUID}'!\r\n{ex}");
+                else
+                {
+                    string name;
+                    try { name = Path.GetFileNameWithoutExtension(configFile.ConfigFilePath); }
+                    catch { name = "UNKNOWN";  }
+
+                    ConfigManager.LogSource.LogWarning($"Exception setting up category (no meta): {name}\n{ex}");
+                }
             }
         }
 
