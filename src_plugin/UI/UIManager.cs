@@ -71,6 +71,7 @@ namespace ConfigManager.UI
                     return;
 
                 UniversalUI.SetUIActive(ConfigManager.GUID, value);
+                Instance.SetActive(value);
             }
         }
 
@@ -411,6 +412,13 @@ namespace ConfigManager.UI
             ConstructToolbar();
 
             ConstructEditorViewport();
+        }
+
+        protected override void OnClosePanelClicked()
+        {
+            base.OnClosePanelClicked();
+
+            ShowMenu = false;
         }
 
         private void ConstructTitleBar()
