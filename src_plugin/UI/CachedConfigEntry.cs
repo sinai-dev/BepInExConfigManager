@@ -41,19 +41,19 @@ namespace ConfigManager.UI
 
             EditedValue = config.BoxedValue;
 
-            var eventInfo = typeof(ConfigEntry<>).MakeGenericType(config.SettingType).GetEvent("SettingChanged");
-            var methodInfo = typeof(CachedConfigEntry).GetMethod("OnSettingChanged", BindingFlags.NonPublic | BindingFlags.Instance);
-            var handler = Delegate.CreateDelegate(eventInfo.EventHandlerType, this, methodInfo);
-            eventInfo.AddEventHandler(config, handler);
+            // EventInfo eventInfo = typeof(ConfigEntry<>).MakeGenericType(config.SettingType).GetEvent("SettingChanged");
+            // MethodInfo methodInfo = typeof(CachedConfigEntry).GetMethod("OnSettingChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+            // Delegate handler = Delegate.CreateDelegate(eventInfo.EventHandlerType, this, methodInfo);
+            // eventInfo.AddEventHandler(config, handler);
 
             CreateIValue(config.BoxedValue, FallbackType);
         }
 
-        private void OnSettingChanged(object sender, EventArgs e)
+        internal void OnSettingChanged(object sender, EventArgs e)
         {
             // ConfigMngrPlugin.Logger.LogMessage($"OnSettingChanged: {(e as SettingChangedEventArgs).ChangedSetting.Definition.Key}");
 
-            var val = (e as SettingChangedEventArgs).ChangedSetting.BoxedValue;
+            object val = (e as SettingChangedEventArgs).ChangedSetting.BoxedValue;
             this.EditedValue = val; 
             this.IValue.Value = val;
             this.IValue.OnValueUpdated();
@@ -64,7 +64,7 @@ namespace ConfigManager.UI
             if (RefConfig.Description?.AcceptableValues != null
                 && RefConfig.Description.AcceptableValues.GetType().Name.StartsWith("AcceptableValueList"))
             {
-                var type = value.GetActualType();
+                Type type = value.GetActualType();
                 IValue = new InteractiveValueList(value, type);
             }
             else
@@ -89,7 +89,7 @@ namespace ConfigManager.UI
             if (RefConfig.Description.AcceptableValues != null)
                 IValue.Value = RefConfig.Description.AcceptableValues.Clamp(IValue.Value);
 
-            var edited = EditedValue;
+            object edited = EditedValue;
             if ((edited == null && IValue.Value == null) || (edited != null && edited.Equals(IValue.Value)))
                 return;
 
@@ -167,7 +167,7 @@ namespace ConfigManager.UI
             ContentGroup = UIFactory.CreateVerticalGroup(UIroot, "ConfigHolder", true, false, true, true, 5, new Vector4(2, 2, 5, 5),
                 new Color(0.12f, 0.12f, 0.12f));
 
-            var horiGroup = UIFactory.CreateHorizontalGroup(ContentGroup, "ConfigEntryHolder", false, false, true, true,
+            GameObject horiGroup = UIFactory.CreateHorizontalGroup(ContentGroup, "ConfigEntryHolder", false, false, true, true,
                 5, default, new Color(1, 1, 1, 0), TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(horiGroup, minHeight: 30, flexibleHeight: 0);
 
@@ -180,7 +180,7 @@ namespace ConfigManager.UI
 
             // Undo button
 
-            var undoButton = UIFactory.CreateButton(horiGroup, "UndoButton", "Undo", new Color(0.3f, 0.3f, 0.3f));
+            UniverseLib.UI.Models.ButtonRef undoButton = UIFactory.CreateButton(horiGroup, "UndoButton", "Undo", new Color(0.3f, 0.3f, 0.3f));
             undoButton.OnClick += UndoEdits;
             this.undoButton = undoButton.Component.gameObject;
             this.undoButton.SetActive(false);
@@ -188,7 +188,7 @@ namespace ConfigManager.UI
 
             // Default button
 
-            var defaultButton = UIFactory.CreateButton(horiGroup, "DefaultButton", "Default", new Color(0.3f, 0.3f, 0.3f));
+            UniverseLib.UI.Models.ButtonRef defaultButton = UIFactory.CreateButton(horiGroup, "DefaultButton", "Default", new Color(0.3f, 0.3f, 0.3f));
             defaultButton.OnClick += RevertToDefault;
             UIFactory.SetLayoutElement(defaultButton.Component.gameObject, minWidth: 80, minHeight: 22, flexibleWidth: 0);
 
@@ -196,7 +196,7 @@ namespace ConfigManager.UI
 
             if (RefConfig.Description != null && !string.IsNullOrEmpty(RefConfig.Description.Description))
             {
-                var desc = UIFactory.CreateLabel(ContentGroup, "Description", $"<i>{RefConfig.Description.Description}</i>",
+                Text desc = UIFactory.CreateLabel(ContentGroup, "Description", $"<i>{RefConfig.Description.Description}</i>",
                     TextAnchor.MiddleLeft, Color.grey);
                 UIFactory.SetLayoutElement(desc.gameObject, minWidth: 250, minHeight: 18, flexibleWidth: 9999, flexibleHeight: 0);
             }

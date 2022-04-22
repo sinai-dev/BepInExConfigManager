@@ -26,6 +26,7 @@ namespace ConfigManager.UI
     internal class ConfigFileInfo
     {
         public ConfigFile RefConfigFile;
+        public BepInPlugin Meta;
 
         private List<EntryInfo> entries = new();
 
@@ -53,10 +54,15 @@ namespace ConfigManager.UI
     {
         public static UIManager Instance { get; internal set; }
 
+        static readonly Dictionary<string, ConfigFileInfo> ConfigFiles = new();
+        static readonly Dictionary<ConfigEntryBase, CachedConfigEntry> configsToCached = new();
+        static ConfigFileInfo currentCategory;
+
+        static readonly HashSet<CachedConfigEntry> editingEntries = new();
+        internal static ButtonRef saveButton;
+
         internal static UIBase uiBase;
-
         public override string Name => $"<b>{ConfigManager.NAME}</b> <i>{ConfigManager.VERSION}</i>";
-
         public override int MinWidth => 750;
         public override int MinHeight => 750;
         public override Vector2 DefaultAnchorMin => new(0.2f, 0.02f);
@@ -77,22 +83,14 @@ namespace ConfigManager.UI
 
         public static bool ShowHiddenConfigs { get; internal set; }
 
-        //internal static GameObject MainPanel;
         internal static GameObject CategoryListContent;
         internal static GameObject ConfigEditorContent;
 
         internal static string Filter => currentFilter ?? "";
-
         private static string currentFilter;
 
-        private static readonly HashSet<CachedConfigEntry> editingEntries = new();
-        internal static ButtonRef saveButton;
-
-        private static readonly Dictionary<string, ConfigFileInfo> _categoryInfos = new();
-        private static ConfigFileInfo _currentCategory;
-
-        private static Color _normalInactiveColor = new(0.38f, 0.34f, 0.34f);
-        private static Color _normalActiveColor = UnityHelpers.ToColor("c2b895");
+        private static Color normalInactiveColor = new(0.38f, 0.34f, 0.34f);
+        private static Color normalActiveColor = UnityHelpers.ToColor("c2b895");
 
         public UIManager(UIBase owner) : base(owner)
         {
@@ -121,13 +119,12 @@ namespace ConfigManager.UI
             ConfigFile coreConfig = (ConfigFile)AccessTools.Property(typeof(ConfigFile), "CoreConfig").GetValue(null, null);
 #endif
             if (coreConfig != null)
-                SetupCategory(coreConfig, null, new BepInPlugin("bepinex.core.config", "BepInEx", "1.0"), true);
+                SetupCategory(coreConfig, null, new BepInPlugin("bepinex.core.config", "BepInEx", "1.0"), true, true);
 
-            foreach (var cachedConfig in Patcher.ConfigFiles)
+            foreach (CachedConfigFile cachedConfig in Patcher.ConfigFiles)
                 ProcessConfigFile(cachedConfig);
 
             Patcher.ConfigFileCreated += ProcessConfigFile;
-
         }
 
         static void ProcessConfigFile(CachedConfigFile cachedConfig)
@@ -139,10 +136,24 @@ namespace ConfigManager.UI
         {
             yield return null;
 
-            SetupCategory(cachedConfig.configFile, null, cachedConfig.metadata);
+            SetupCategory(cachedConfig.configFile, null, cachedConfig.metadata, false);
+
+            cachedConfig.configFile.SettingChanged += ConfigFile_SettingChanged;
         }
 
-        internal static void SetupCategory(ConfigFile configFile, object plugin, BepInPlugin meta, bool forceAdvanced = false)
+        private static void ConfigFile_SettingChanged(object sender, SettingChangedEventArgs e)
+        {
+            try
+            {
+                configsToCached[sender as ConfigEntryBase].OnSettingChanged(sender, e);
+            }
+            catch (Exception ex)
+            {
+                ConfigManager.LogSource.LogWarning(ex);
+            }
+        }
+
+        internal static void SetupCategory(ConfigFile configFile, object plugin, BepInPlugin meta, bool isCoreConfig, bool forceAdvanced = false)
         {
             try
             {
@@ -150,9 +161,9 @@ namespace ConfigManager.UI
                 string name = meta?.Name ?? GUID;
 
 #if CPP
-                var basePlugin = plugin as BasePlugin;
+                BasePlugin basePlugin = plugin as BasePlugin;
 #else
-                var basePlugin = plugin as BaseUnityPlugin;
+                BaseUnityPlugin basePlugin = plugin as BaseUnityPlugin;
 #endif
 
                 if (!forceAdvanced && basePlugin != null)
@@ -169,31 +180,32 @@ namespace ConfigManager.UI
                 ConfigFileInfo info = new()
                 {
                     RefConfigFile = configFile,
+                    Meta = meta,
                 };
 
                 // List button
 
-                var btn = UIFactory.CreateButton(CategoryListContent, "BUTTON_" + GUID, name);
+                ButtonRef btn = UIFactory.CreateButton(CategoryListContent, "BUTTON_" + GUID, name);
                 btn.OnClick += () => { SetActiveCategory(GUID); };
                 UIFactory.SetLayoutElement(btn.Component.gameObject, flexibleWidth: 9999, minHeight: 30, flexibleHeight: 0);
 
-                RuntimeHelper.SetColorBlock(btn.Component, _normalInactiveColor, new Color(0.6f, 0.55f, 0.45f),
+                RuntimeHelper.SetColorBlock(btn.Component, normalInactiveColor, new Color(0.6f, 0.55f, 0.45f),
                     new Color(0.20f, 0.18f, 0.15f));
 
                 info.listButton = btn;
 
                 // Editor content
 
-                var content = UIFactory.CreateVerticalGroup(ConfigEditorContent, "CATEGORY_" + GUID,
+                GameObject content = UIFactory.CreateVerticalGroup(ConfigEditorContent, "CATEGORY_" + GUID,
                     true, false, true, true, 4, default, new Color(0.05f, 0.05f, 0.05f));
 
-                var dict = new Dictionary<string, List<ConfigEntryBase>>
+                Dictionary<string, List<ConfigEntryBase>> dict = new()
                 {
                     { "", new List<ConfigEntryBase>() } // make sure the null category is first.
                 };
 
                 // Iterate and prepare categories
-                foreach (var entry in configFile.Keys)
+                foreach (ConfigDefinition entry in configFile.Keys)
                 {
                     string sec = entry.Section;
                     if (sec == null)
@@ -206,28 +218,30 @@ namespace ConfigManager.UI
                 }
 
                 // Create actual entry editors
-                foreach (var ctg in dict)
+                foreach (KeyValuePair<string, List<ConfigEntryBase>> ctg in dict)
                 {
                     if (!string.IsNullOrEmpty(ctg.Key))
                     {
-                        var bg = UIFactory.CreateHorizontalGroup(content, "TitleBG", true, true, true, true, 0, default,
+                        GameObject bg = UIFactory.CreateHorizontalGroup(content, "TitleBG", true, true, true, true, 0, default,
                             new Color(0.07f, 0.07f, 0.07f));
-                        var title = UIFactory.CreateLabel(bg, $"Title_{ctg.Key}", ctg.Key, TextAnchor.MiddleCenter, default, true, 17);
+                        Text title = UIFactory.CreateLabel(bg, $"Title_{ctg.Key}", ctg.Key, TextAnchor.MiddleCenter, default, true, 17);
                         UIFactory.SetLayoutElement(title.gameObject, minHeight: 30, minWidth: 200, flexibleWidth: 9999);
                     }
 
-                    foreach (var configEntry in ctg.Value)
+                    foreach (ConfigEntryBase configEntry in ctg.Value)
                     {
-                        var cache = new CachedConfigEntry(configEntry, content);
+                        CachedConfigEntry cache = new(configEntry, content);
                         cache.Enable();
 
-                        var obj = cache.UIroot;
+                        configsToCached.Add(configEntry, cache);
+
+                        GameObject obj = cache.UIroot;
 
                         bool advanced = forceAdvanced;
 
                         if (!advanced)
                         {
-                            var tags = configEntry.Description?.Tags;
+                            object[] tags = configEntry.Description?.Tags;
                             if (tags != null && tags.Any())
                             {
                                 if (tags.Any(it => it is string s && s == "Advanced"))
@@ -261,7 +275,7 @@ namespace ConfigManager.UI
 
                 info.contentObj = content;
 
-                _categoryInfos.Add(GUID, info);
+                ConfigFiles.Add(GUID, info);
             }
             catch (Exception ex)
             {
@@ -310,12 +324,12 @@ namespace ConfigManager.UI
 
         public static void SavePreferences()
         {
-            foreach (var ctg in _categoryInfos.Values)
+            foreach (ConfigFileInfo ctg in ConfigFiles.Values)
             {
-                foreach (var entry in ctg.Entries)
+                foreach (EntryInfo entry in ctg.Entries)
                     entry.RefEntry.BoxedValue = entry.Cached.EditedValue;
-                
-                var file = ctg.RefConfigFile;
+
+                ConfigFile file = ctg.RefConfigFile;
                 if (!file.SaveOnConfigSet)
                     file.Save();
             }
@@ -334,15 +348,15 @@ namespace ConfigManager.UI
 
             ShowHiddenConfigs = show;
 
-            foreach (var entry in _categoryInfos)
+            foreach (KeyValuePair<string, ConfigFileInfo> entry in ConfigFiles)
             {
-                var info = entry.Value;
+                ConfigFileInfo info = entry.Value;
 
                 if (info.isCompletelyHidden)
                     info.listButton.Component.gameObject.SetActive(ShowHiddenConfigs);
             }
 
-            if (_currentCategory != null && !ShowHiddenConfigs && _currentCategory.isCompletelyHidden)
+            if (currentCategory != null && !ShowHiddenConfigs && currentCategory.isCompletelyHidden)
                 UnsetActiveCategory();
 
             RefreshFilter();
@@ -356,10 +370,10 @@ namespace ConfigManager.UI
 
         internal static void RefreshFilter()
         {
-            if (_currentCategory == null)
+            if (currentCategory == null)
                 return;
 
-            foreach (var entry in _currentCategory.Entries)
+            foreach (EntryInfo entry in currentCategory.Entries)
             {
                 bool val = (string.IsNullOrEmpty(currentFilter) 
                                 || entry.RefEntry.Definition.Key.ToLower().Contains(currentFilter)
@@ -372,33 +386,33 @@ namespace ConfigManager.UI
 
         public static void SetActiveCategory(string categoryIdentifier)
         {
-            if (!_categoryInfos.ContainsKey(categoryIdentifier))
+            if (!ConfigFiles.ContainsKey(categoryIdentifier))
                 return;
 
             UnsetActiveCategory();
 
-            var info = _categoryInfos[categoryIdentifier];
+            ConfigFileInfo info = ConfigFiles[categoryIdentifier];
 
-            _currentCategory = info;
+            currentCategory = info;
 
-            var obj = info.contentObj;
+            GameObject obj = info.contentObj;
             obj.SetActive(true);
 
-            var btn = info.listButton;
-            RuntimeHelper.SetColorBlock(btn.Component, _normalActiveColor);
+            ButtonRef btn = info.listButton;
+            RuntimeHelper.SetColorBlock(btn.Component, normalActiveColor);
 
             RefreshFilter();
         }
 
         internal static void UnsetActiveCategory()
         {
-            if (_currentCategory == null)
+            if (currentCategory == null)
                 return;
 
-            RuntimeHelper.SetColorBlock(_currentCategory.listButton.Component, _normalInactiveColor);
-            _currentCategory.contentObj.SetActive(false);
+            RuntimeHelper.SetColorBlock(currentCategory.listButton.Component, normalInactiveColor);
+            currentCategory.contentObj.SetActive(false);
 
-            _currentCategory = null;
+            currentCategory = null;
         }
 
         protected override void ConstructPanelContent()
@@ -451,10 +465,10 @@ namespace ConfigManager.UI
 
         private void ConstructToolbar()
         {
-            var toolbarGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "Toolbar", false, false, true, true, 4, new Vector4(3, 3, 3, 3),
+            GameObject toolbarGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "Toolbar", false, false, true, true, 4, new Vector4(3, 3, 3, 3),
                 new Color(0.1f, 0.1f, 0.1f));
 
-            var toggleObj = UIFactory.CreateToggle(toolbarGroup, "HiddenConfigsToggle", out Toggle toggle, out Text toggleText);
+            GameObject toggleObj = UIFactory.CreateToggle(toolbarGroup, "HiddenConfigsToggle", out Toggle toggle, out Text toggleText);
             toggle.isOn = false;
             toggle.onValueChanged.AddListener((bool val) =>
             {
@@ -463,21 +477,21 @@ namespace ConfigManager.UI
             toggleText.text = "Show Advanced Settings";
             UIFactory.SetLayoutElement(toggleObj, minWidth: 280, minHeight: 25, flexibleHeight: 0, flexibleWidth: 0);
 
-            var inputField = UIFactory.CreateInputField(toolbarGroup, "FilterInput", "Search...");
+            InputFieldRef inputField = UIFactory.CreateInputField(toolbarGroup, "FilterInput", "Search...");
             UIFactory.SetLayoutElement(inputField.Component.gameObject, flexibleWidth: 9999, minHeight: 25);
             inputField.OnValueChanged += FilterConfigs;
         }
 
         private void ConstructEditorViewport()
         {
-            var horiGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "Main", true, true, true, true, 2, default, new Color(0.08f, 0.08f, 0.08f));
+            GameObject horiGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "Main", true, true, true, true, 2, default, new Color(0.08f, 0.08f, 0.08f));
 
-            var ctgList = UIFactory.CreateScrollView(horiGroup, "CategoryList", out GameObject ctgContent, out _, new Color(0.1f, 0.1f, 0.1f));
+            GameObject ctgList = UIFactory.CreateScrollView(horiGroup, "CategoryList", out GameObject ctgContent, out _, new Color(0.1f, 0.1f, 0.1f));
             UIFactory.SetLayoutElement(ctgList, minWidth: 300, flexibleWidth: 0);
             CategoryListContent = ctgContent;
             UIFactory.SetLayoutGroup<VerticalLayoutGroup>(ctgContent, spacing: 3);
 
-            var editor = UIFactory.CreateScrollView(horiGroup, "ConfigEditor", out GameObject editorContent, out _, new Color(0.05f, 0.05f, 0.05f));
+            GameObject editor = UIFactory.CreateScrollView(horiGroup, "ConfigEditor", out GameObject editorContent, out _, new Color(0.05f, 0.05f, 0.05f));
             UIFactory.SetLayoutElement(editor, flexibleWidth: 9999);
             ConfigEditorContent = editorContent;
         }
