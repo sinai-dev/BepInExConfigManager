@@ -27,8 +27,8 @@ namespace ConfigManager.UI.InteractiveValues
             if (acceptableValues != null)
                 return;
 
-            var acceptable = Owner.RefConfig.Description.AcceptableValues;
-            var field = acceptable.GetType().GetProperty("AcceptableValues");
+            BepInEx.Configuration.AcceptableValueBase acceptable = Owner.RefConfig.Description.AcceptableValues;
+            System.Reflection.PropertyInfo field = acceptable.GetType().GetProperty("AcceptableValues");
             acceptableValues = (field.GetValue(acceptable, null) as IList).Cast<object>();
         }
 
@@ -54,7 +54,7 @@ namespace ConfigManager.UI.InteractiveValues
 
             //var value = Enum.Parse(type, s_enumNamesCache[type][index].Value);
 
-            var value = acceptableValues.ElementAt(dropdown.value);
+            object value = acceptableValues.ElementAt(dropdown.value);
 
             if (value != null)
             {
@@ -70,7 +70,7 @@ namespace ConfigManager.UI.InteractiveValues
 
             // dropdown
 
-            var dropdownObj = UIFactory.CreateDropdown(mainContent, "InteractiveValueList", out dropdown, "", 14, null);
+            GameObject dropdownObj = UIFactory.CreateDropdown(mainContent, "InteractiveValueList", out dropdown, "", 14, null);
             UIFactory.SetLayoutElement(dropdownObj, minWidth: 400, minHeight: 25);
 
             dropdown.onValueChanged.AddListener((int val) =>
@@ -78,9 +78,9 @@ namespace ConfigManager.UI.InteractiveValues
                 SetValueFromDropdown();
             });
 
-            foreach (var obj in acceptableValues)
+            foreach (object obj in acceptableValues)
             {
-                var opt = new Dropdown.OptionData
+                Dropdown.OptionData opt = new()
                 {
                     text = obj.ToString()
                 };

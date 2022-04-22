@@ -29,9 +29,9 @@ namespace ConfigManager.UI.InteractiveValues
 
         public override void OnValueUpdated()
         {
-            var enabledNames = new List<string>();
+            List<string> enabledNames = new();
 
-            var enabled = Value?.ToString().Split(',').Select(it => it.Trim());
+            IEnumerable<string> enabled = Value?.ToString().Split(',').Select(it => it.Trim());
             if (enabled != null)
                 enabledNames.AddRange(enabled);
 
@@ -51,7 +51,7 @@ namespace ConfigManager.UI.InteractiveValues
                 refreshingToggleStates = true;
                 for (int i = 0; i < values.Length; i++)
                 {
-                    var toggle = toggles[i];
+                    Toggle toggle = toggles[i];
                     if (toggle.isOn != enabledFlags[i])
                         toggle.isOn = enabledFlags[i];
                 }
@@ -75,7 +75,7 @@ namespace ConfigManager.UI.InteractiveValues
             if (string.IsNullOrEmpty(val))
                 return;
 
-            var type = Value?.GetType() ?? FallbackType;
+            Type type = Value?.GetType() ?? FallbackType;
             Value = Enum.Parse(type, val);
             RefreshUIForValue();
             Owner.SetValueFromIValue();
@@ -97,7 +97,7 @@ namespace ConfigManager.UI.InteractiveValues
         {
             subContentConstructed = true;
 
-            var groupObj = UIFactory.CreateVerticalGroup(subContentParent, "InteractiveFlagsContent", false, true, true, true, 5,
+            GameObject groupObj = UIFactory.CreateVerticalGroup(subContentParent, "InteractiveFlagsContent", false, true, true, true, 5,
                    new Vector4(3, 3, 3, 3), new Color(1, 1, 1, 0));
 
             // toggles
@@ -108,9 +108,9 @@ namespace ConfigManager.UI.InteractiveValues
 
         internal void AddToggle(int index, GameObject groupObj)
         {
-            var value = values[index];
+            KeyValuePair<long, string> value = values[index];
 
-            var toggleObj = UIFactory.CreateToggle(groupObj, "FlagToggle", out Toggle toggle, out Text text, new Color(0.1f, 0.1f, 0.1f));
+            GameObject toggleObj = UIFactory.CreateToggle(groupObj, "FlagToggle", out Toggle toggle, out Text text, new Color(0.1f, 0.1f, 0.1f));
             UIFactory.SetLayoutElement(toggleObj, minWidth: 100, flexibleWidth: 2000, minHeight: 25);
 
             toggles[index] = toggle;

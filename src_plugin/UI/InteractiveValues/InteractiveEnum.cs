@@ -29,32 +29,32 @@ namespace ConfigManager.UI.InteractiveValues
 
         internal void GetNames()
         {
-            var type = Value?.GetType() ?? FallbackType;
+            Type type = Value?.GetType() ?? FallbackType;
 
             if (!enumNamesCache.ContainsKey(type))
             {
                 // using GetValues not GetNames, to catch instances of weird enums (eg CameraClearFlags)
-                var values = Enum.GetValues(type);
+                Array values = Enum.GetValues(type);
 
-                var list = new List<KeyValuePair<long, string>>();
-                var set = new HashSet<string>();
+                List<KeyValuePair<long, string>> list = new();
+                HashSet<string> set = new();
 
-                foreach (var value in values)
+                foreach (object value in values)
                 {
-                    var name = value.ToString();
+                    string name = value.ToString();
 
                     if (set.Contains(name)) 
                         continue;
 
                     set.Add(name);
 
-                    var backingType = Enum.GetUnderlyingType(type);
+                    Type backingType = Enum.GetUnderlyingType(type);
                     long longValue;
                     try
                     {
                         // this approach is necessary, a simple '(int)value' is not sufficient.
 
-                        var unbox = Convert.ChangeType(value, backingType);
+                        object unbox = Convert.ChangeType(value, backingType);
 
                         longValue = (long)Convert.ChangeType(unbox, typeof(long));
                     }
@@ -95,10 +95,10 @@ namespace ConfigManager.UI.InteractiveValues
 
         private void SetValueFromDropdown()
         {
-            var type = Value?.GetType() ?? FallbackType;
-            var index = dropdown.value;
+            Type type = Value?.GetType() ?? FallbackType;
+            int index = dropdown.value;
 
-            var value = Enum.Parse(type, enumNamesCache[type][index].Value);
+            object value = Enum.Parse(type, enumNamesCache[type][index].Value);
 
             if (value != null)
             {
@@ -117,7 +117,7 @@ namespace ConfigManager.UI.InteractiveValues
 
             // dropdown
 
-            var dropdownObj = UIFactory.CreateDropdown(mainContent, "InteractiveDropdown", out dropdown, "", 14, null);
+            GameObject dropdownObj = UIFactory.CreateDropdown(mainContent, "InteractiveDropdown", out dropdown, "", 14, null);
             UIFactory.SetLayoutElement(dropdownObj, minWidth: 400, minHeight: 25);
 
             dropdown.onValueChanged.AddListener((int val) =>
@@ -125,9 +125,9 @@ namespace ConfigManager.UI.InteractiveValues
                 SetValueFromDropdown();
             });
 
-            foreach (var kvp in values)
+            foreach (KeyValuePair<long, string> kvp in values)
             {
-                var opt = new Dropdown.OptionData
+                Dropdown.OptionData opt = new()
                 {
                     text = kvp.Value
                 };

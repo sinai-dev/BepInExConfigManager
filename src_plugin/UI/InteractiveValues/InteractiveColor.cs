@@ -65,23 +65,23 @@ namespace ConfigManager.UI.InteractiveValues
 
             // hori group
 
-            var baseHoriGroup = UIFactory.CreateHorizontalGroup(mainContent, "ColorEditor", false, false, true, true, 5,
+            GameObject baseHoriGroup = UIFactory.CreateHorizontalGroup(mainContent, "ColorEditor", false, false, true, true, 5,
                 default, new Color(1, 1, 1, 0), TextAnchor.MiddleLeft);
 
-            var imgHolder = UIFactory.CreateVerticalGroup(baseHoriGroup, "ImgHolder", true, true, true, true, 0, new Vector4(1, 1, 1, 1),
+            GameObject imgHolder = UIFactory.CreateVerticalGroup(baseHoriGroup, "ImgHolder", true, true, true, true, 0, new Vector4(1, 1, 1, 1),
                 new Color(0.08f, 0.08f, 0.08f));
             UIFactory.SetLayoutElement(imgHolder, minWidth: 50, minHeight: 25, flexibleWidth: 999, flexibleHeight: 0);
 
-            var imgObj = UIFactory.CreateUIObject("ColorImageHelper", imgHolder, new Vector2(100, 25));
+            GameObject imgObj = UIFactory.CreateUIObject("ColorImageHelper", imgHolder, new Vector2(100, 25));
             colorImage = imgObj.AddComponent<Image>();
             colorImage.color = Value is Color ? (Color)this.Value : (Color)(Color32)this.Value;
 
             // sliders / inputs
 
-            var editorGroup = UIFactory.CreateVerticalGroup(baseHoriGroup, "EditorsGroup", false, false, true, true, 3, new Vector4(3, 3, 3, 3),
+            GameObject editorGroup = UIFactory.CreateVerticalGroup(baseHoriGroup, "EditorsGroup", false, false, true, true, 3, new Vector4(3, 3, 3, 3),
                 new Color(1, 1, 1, 0));
 
-            var grid = UIFactory.CreateGridGroup(editorGroup, "Grid", new Vector2(140, 25), new Vector2(2, 2), new Color(1, 1, 1, 0));
+            GameObject grid = UIFactory.CreateGridGroup(editorGroup, "Grid", new Vector2(140, 25), new Vector2(2, 2), new Color(1, 1, 1, 0));
             UIFactory.SetLayoutElement(grid, minWidth: 580, minHeight: 25, flexibleWidth: 900);
 
             for (int i = 0; i < 4; i++)
@@ -92,13 +92,13 @@ namespace ConfigManager.UI.InteractiveValues
 
         internal void AddEditorRow(int index, GameObject groupObj)
         {
-            var row = UIFactory.CreateHorizontalGroup(groupObj, "EditorRow_" + fieldNames[index],
+            GameObject row = UIFactory.CreateHorizontalGroup(groupObj, "EditorRow_" + fieldNames[index],
                 false, true, true, true, 5, default, new Color(1, 1, 1, 0));
 
-            var label = UIFactory.CreateLabel(row, "RowLabel", $"{fieldNames[index]}:", TextAnchor.MiddleRight, Color.cyan);
+            Text label = UIFactory.CreateLabel(row, "RowLabel", $"{fieldNames[index]}:", TextAnchor.MiddleRight, Color.cyan);
             UIFactory.SetLayoutElement(label.gameObject, minWidth: 17, flexibleWidth: 0, minHeight: 25);
 
-            var inputField = UIFactory.CreateInputField(row, "InputField", "...");
+            UniverseLib.UI.Models.InputFieldRef inputField = UIFactory.CreateInputField(row, "InputField", "...");
             UIFactory.SetLayoutElement(inputField.Component.gameObject, minWidth: 40, minHeight: 25, flexibleWidth: 0);
 
             inputs[index] = inputField.Component;
@@ -122,7 +122,7 @@ namespace ConfigManager.UI.InteractiveValues
                 }
             };
 
-            var sliderObj = UIFactory.CreateSlider(row, "Slider", out Slider slider);
+            GameObject sliderObj = UIFactory.CreateSlider(row, "Slider", out Slider slider);
             sliders[index] = slider;
             UIFactory.SetLayoutElement(sliderObj, minHeight: 25, minWidth: 70, flexibleWidth: 999, flexibleHeight: 0);
             slider.minValue = 0;
@@ -143,7 +143,7 @@ namespace ConfigManager.UI.InteractiveValues
                 {
                     if (Value is Color32)
                     {
-                        var val = ((byte)value).ToString();
+                        string val = ((byte)value).ToString();
                         inputField.Text = val;
                         SetValueToColor32((byte)value);
                         inputs[index].text = val;

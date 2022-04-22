@@ -81,13 +81,13 @@ namespace ConfigManager.UI.InteractiveValues
 
             if (Owner.RefConfig.Description.AcceptableValues is AcceptableValueBase range)
             {
-                var gtype = typeof(AcceptableValueRange<>).MakeGenericType(range.ValueType);
+                Type gtype = typeof(AcceptableValueRange<>).MakeGenericType(range.ValueType);
                 object minValue = AccessTools.Property(gtype, "MinValue").GetValue(range, null);
                 object maxValue = AccessTools.Property(gtype, "MaxValue").GetValue(range, null);
 
                 Owner.mainLabel.text += $" <color=grey><i>[{minValue.ToString()} - {maxValue.ToString()}]</i></color>";
 
-                var sliderObj = UIFactory.CreateSlider(mainContent, "ValueSlider", out slider);
+                GameObject sliderObj = UIFactory.CreateSlider(mainContent, "ValueSlider", out slider);
                 UIFactory.SetLayoutElement(sliderObj, minWidth: 250, minHeight: 25);
 
                 slider.minValue = (float)Convert.ChangeType(minValue, typeof(float));

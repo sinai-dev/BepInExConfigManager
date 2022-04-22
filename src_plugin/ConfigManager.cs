@@ -24,7 +24,7 @@ namespace ConfigManager
         public const string GUID = "com.sinai.BepInExConfigManager";
         public const string NAME = "BepInExConfigManager";
         public const string AUTHOR = "Sinai";
-        public const string VERSION = "1.2.4";
+        public const string VERSION = "1.2.5";
 
         public static ConfigManager Instance { get; private set; }
 
@@ -62,7 +62,7 @@ namespace ConfigManager
             Instance = this;
 
             UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<ManagerBehaviour>();
-            var obj = new GameObject("ConfigManagerBehaviour");
+            GameObject obj = new("ConfigManagerBehaviour");
             GameObject.DontDestroyOnLoad(obj);
             obj.hideFlags |= HideFlags.HideAndDontSave;
             obj.AddComponent<ManagerBehaviour>();

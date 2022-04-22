@@ -65,12 +65,12 @@ namespace ConfigManager.UI.InteractiveValues
 
             hiddenObj = UIFactory.CreateLabel(mainContent, "HiddenLabel", "", TextAnchor.MiddleLeft).gameObject;
             hiddenObj.SetActive(false);
-            var hiddenText = hiddenObj.GetComponent<Text>();
+            Text hiddenText = hiddenObj.GetComponent<Text>();
             hiddenText.color = Color.clear;
             hiddenText.fontSize = 14;
             hiddenText.raycastTarget = false;
             hiddenText.supportRichText = false;
-            var hiddenFitter = hiddenObj.AddComponent<ContentSizeFitter>();
+            ContentSizeFitter hiddenFitter = hiddenObj.AddComponent<ContentSizeFitter>();
             hiddenFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             UIFactory.SetLayoutElement(hiddenObj, minHeight: 25, flexibleHeight: 500, minWidth: 250, flexibleWidth: 9000);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(hiddenObj, true, true, true, true);

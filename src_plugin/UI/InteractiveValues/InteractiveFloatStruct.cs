@@ -46,7 +46,7 @@ namespace ConfigManager.UI.InteractiveValues
                 {
                     for (int i = 0; i < fields.Length; i++)
                     {
-                        var field = fields[i];
+                        FieldInfo field = fields[i];
                         float val = (float)field.GetValue(instance);
                         inputs[i].text = val.ToString();
                     }
@@ -69,8 +69,8 @@ namespace ConfigManager.UI.InteractiveValues
                 return ret;
 
             ret = true;
-            var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            foreach (var field in fields)
+            FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            foreach (FieldInfo field in fields)
             {
                 if (field.IsLiteral)
                     continue;
@@ -106,7 +106,7 @@ namespace ConfigManager.UI.InteractiveValues
 
         internal void InitializeStructInfo()
         {
-            var type = Value?.GetType() ?? FallbackType;
+            Type type = Value?.GetType() ?? FallbackType;
 
             if (structInfo != null && type == lastStructType)
                 return;
@@ -126,7 +126,7 @@ namespace ConfigManager.UI.InteractiveValues
 
                 base.ConstructUI(parent);
 
-                var editorContainer = UIFactory.CreateGridGroup(mainContent, "EditorContent", new Vector2(150f, 25f), new Vector2(5f, 5f),
+                GameObject editorContainer = UIFactory.CreateGridGroup(mainContent, "EditorContent", new Vector2(150f, 25f), new Vector2(5f, 5f),
                     new Color(1,1,1,0));
                 UIFactory.SetLayoutElement(editorContainer, minWidth: 300, flexibleWidth: 9999);
 
@@ -147,7 +147,7 @@ namespace ConfigManager.UI.InteractiveValues
         {
             try
             {
-                var row = UIFactory.CreateHorizontalGroup(groupObj, "EditorRow", false, true, true, true, 5, default, new Color(1, 1, 1, 0));
+                GameObject row = UIFactory.CreateHorizontalGroup(groupObj, "EditorRow", false, true, true, true, 5, default, new Color(1, 1, 1, 0));
 
                 string name = structInfo.FieldNames[index];
                 if (name.StartsWith("m_"))
@@ -155,10 +155,10 @@ namespace ConfigManager.UI.InteractiveValues
                 if (name.Length > 1)
                     name = name.Substring(0, 1);
 
-                var label = UIFactory.CreateLabel(row, "RowLabel", $"{name}:", TextAnchor.MiddleRight, Color.cyan);
+                Text label = UIFactory.CreateLabel(row, "RowLabel", $"{name}:", TextAnchor.MiddleRight, Color.cyan);
                 UIFactory.SetLayoutElement(label.gameObject, minWidth: 30, flexibleWidth: 0, minHeight: 25);
 
-                var inputField = UIFactory.CreateInputField(row, "InputField", "...");
+                UniverseLib.UI.Models.InputFieldRef inputField = UIFactory.CreateInputField(row, "InputField", "...");
                 UIFactory.SetLayoutElement(inputField.Component.gameObject, minWidth: 120, minHeight: 25, flexibleWidth: 0);
 
                 inputs[index] = inputField.Component;

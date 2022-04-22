@@ -21,7 +21,7 @@ namespace ConfigManager.UI.InteractiveValues
 
         public override void RefreshUIForValue()
         {
-            var val = (bool)Value;
+            bool val = (bool)Value;
 
             if (!toggle.gameObject.activeSelf)
                 toggle.gameObject.SetActive(true);
@@ -29,7 +29,7 @@ namespace ConfigManager.UI.InteractiveValues
             if (val != toggle.isOn)
                 toggle.isOn = val;
 
-            var color = val
+            string color = val
                 ? "6bc981"  // on
                 : "c96b6b"; // off
 
@@ -47,9 +47,23 @@ namespace ConfigManager.UI.InteractiveValues
         {
             base.ConstructUI(parent);
 
-            var toggleObj = UIFactory.CreateToggle(mainContent, "InteractiveBoolToggle", out toggle, out _, new Color(0.1f, 0.1f, 0.1f));
-            UIFactory.SetLayoutElement(toggleObj, minWidth: 24);
-            toggle.onValueChanged.AddListener(OnToggleValueChanged);
+            bool added = false;
+            while (!added)
+            {
+                GameObject toggleObj = null;
+                try
+                {
+                    toggleObj = UIFactory.CreateToggle(mainContent, "InteractiveBoolToggle", out toggle, out _, new Color(0.1f, 0.1f, 0.1f));
+                    UIFactory.SetLayoutElement(toggleObj, minWidth: 24);
+                    toggle.onValueChanged.AddListener(OnToggleValueChanged);
+                    added = true;
+                }
+                catch 
+                {
+                    if (toggleObj)
+                        GameObject.Destroy(toggleObj);
+                }
+            }
 
             labelText = UIFactory.CreateLabel(mainContent, "TrueFalseLabel", "False", TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(labelText.gameObject, minWidth: 60, minHeight: 25);

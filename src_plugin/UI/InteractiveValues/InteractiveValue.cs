@@ -59,8 +59,8 @@ namespace ConfigManager.UI.InteractiveValues
 
         public static InteractiveValue Create(object value, Type fallbackType)
         {
-            var type = value.GetActualType() ?? fallbackType;
-            var iType = GetIValueForType(type);
+            Type type = value.GetActualType() ?? fallbackType;
+            Type iType = GetIValueForType(type);
 
             return (InteractiveValue)Activator.CreateInstance(iType, new object[] { value, type });
         }
@@ -128,7 +128,7 @@ namespace ConfigManager.UI.InteractiveValues
             {
                 for (int i = 0; i < this.subContentParent.transform.childCount; i++)
                 {
-                    var child = subContentParent.transform.GetChild(i);
+                    Transform child = subContentParent.transform.GetChild(i);
                     if (child)
                         GameObject.Destroy(child.gameObject);
                 }
@@ -169,7 +169,7 @@ namespace ConfigManager.UI.InteractiveValues
             mainContent = UIFactory.CreateHorizontalGroup(parent, $"InteractiveValue_{this.GetType().Name}", false, false, true, true, 4, default, 
                 new Color(1, 1, 1, 0), TextAnchor.UpperLeft);
 
-            var mainRect = mainContent.GetComponent<RectTransform>();
+            RectTransform mainRect = mainContent.GetComponent<RectTransform>();
             mainRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 25);
 
             UIFactory.SetLayoutElement(mainContent, flexibleWidth: 9000, minWidth: 175, minHeight: 25, flexibleHeight: 0);
