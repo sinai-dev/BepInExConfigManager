@@ -63,7 +63,7 @@
             <Private>False</Private>
         </Reference>
         <Reference Include="Mono.Cecil">
-            <HintPath>..\packages\Mono.Cecil.0.10.4\lib\net35\Mono.Cecil.dll</HintPath>
+            <HintPath>..\packages\Mono.Cecil.0.11.4\lib\net40\Mono.Cecil.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="BepInEx.Core">
