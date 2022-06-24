@@ -1,26 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31005.135
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32414.318
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepInExConfigManager", "src_plugin\BepInExConfigManager.csproj", "{51308BD5-5872-4A72-85D2-6194673C8A5E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BepInExConfigManager", "src_plugin\BepInExConfigManager.csproj", "{51308BD5-5872-4A72-85D2-6194673C8A5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepInExConfigManager.Patcher", "src_patcher\BepInExConfigManager.Patcher.csproj", "{BEABE9B7-0C1C-4071-A99C-1CED983287E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BepInExConfigManager.Patcher", "src_patcher\BepInExConfigManager.Patcher.csproj", "{BEABE9B7-0C1C-4071-A99C-1CED983287E9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release_IL2CPP_CoreCLR|Any CPU = Release_IL2CPP_CoreCLR|Any CPU
 		Release_IL2CPP|Any CPU = Release_IL2CPP|Any CPU
 		Release_Mono|Any CPU = Release_Mono|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{51308BD5-5872-4A72-85D2-6194673C8A5E}.Release_IL2CPP_CoreCLR|Any CPU.ActiveCfg = Release_IL2CPP_CoreCLR|Any CPU
+		{51308BD5-5872-4A72-85D2-6194673C8A5E}.Release_IL2CPP_CoreCLR|Any CPU.Build.0 = Release_IL2CPP_CoreCLR|Any CPU
 		{51308BD5-5872-4A72-85D2-6194673C8A5E}.Release_IL2CPP|Any CPU.ActiveCfg = Release_IL2CPP|Any CPU
 		{51308BD5-5872-4A72-85D2-6194673C8A5E}.Release_IL2CPP|Any CPU.Build.0 = Release_IL2CPP|Any CPU
 		{51308BD5-5872-4A72-85D2-6194673C8A5E}.Release_Mono|Any CPU.ActiveCfg = Release_Mono|Any CPU
 		{51308BD5-5872-4A72-85D2-6194673C8A5E}.Release_Mono|Any CPU.Build.0 = Release_Mono|Any CPU
+		{BEABE9B7-0C1C-4071-A99C-1CED983287E9}.Release_IL2CPP_CoreCLR|Any CPU.ActiveCfg = Release_IL2CPP_CoreCLR|Any CPU
+		{BEABE9B7-0C1C-4071-A99C-1CED983287E9}.Release_IL2CPP_CoreCLR|Any CPU.Build.0 = Release_IL2CPP_CoreCLR|Any CPU
 		{BEABE9B7-0C1C-4071-A99C-1CED983287E9}.Release_IL2CPP|Any CPU.ActiveCfg = Release_IL2CPP|Any CPU
 		{BEABE9B7-0C1C-4071-A99C-1CED983287E9}.Release_IL2CPP|Any CPU.Build.0 = Release_IL2CPP|Any CPU
-		{BEABE9B7-0C1C-4071-A99C-1CED983287E9}.Release_Mono|Any CPU.ActiveCfg = Release_Mono|Any CPU
-		{BEABE9B7-0C1C-4071-A99C-1CED983287E9}.Release_Mono|Any CPU.Build.0 = Release_Mono|Any CPU
+		{BEABE9B7-0C1C-4071-A99C-1CED983287E9}.Release_Mono|Any CPU.ActiveCfg = Release_MONO|Any CPU
+		{BEABE9B7-0C1C-4071-A99C-1CED983287E9}.Release_Mono|Any CPU.Build.0 = Release_MONO|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

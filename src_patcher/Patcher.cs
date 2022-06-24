@@ -9,7 +9,7 @@ using HarmonyLib;
 #if CPP
 using BepInEx.Preloader.Core.Patching;
 
-[PatcherPluginInfo(Patcher.GUID, "BepInExConfigManager.Patcher", "1.0")]
+[PatcherPluginInfo(Patcher.GUID, "BepInExConfigManager.Patcher", "1.3.0")]
 class ConfigManagerPatcher : BasePatcher
 {
     public override void Initialize()

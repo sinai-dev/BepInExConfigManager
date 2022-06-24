@@ -1,91 +1,54 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-    <PropertyGroup>
-        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProjectGuid>{BEABE9B7-0C1C-4071-A99C-1CED983287E9}</ProjectGuid>
-        <OutputType>Library</OutputType>
-        <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>BepInExConfigManager.Patcher</RootNamespace>
-        <AssemblyName>BepInExConfigManager.Patcher</AssemblyName>
-        <FileAlignment>512</FileAlignment>
-        <Deterministic>true</Deterministic>
-        <LangVersion>9.0</LangVersion>
-    </PropertyGroup>
-    <!-- CONFIGURATIONS -->
-    <!-- IL2CPP -->
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_IL2CPP|AnyCPU' ">
-        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-        <OutputPath>..\Release\BepInExConfigManager.Il2Cpp\patchers\</OutputPath>
-        <DefineConstants>CPP</DefineConstants>
-        <AssemblyName>BepInExConfigManager.Il2Cpp.Patcher</AssemblyName>
-        <IsCpp>true</IsCpp>
-        <PlatformTarget>x64</PlatformTarget>
-    </PropertyGroup>
-    <!-- MONO -->
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_Mono|AnyCPU' ">
-        <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-        <OutputPath>..\Release\BepInExConfigManager.Mono\patchers\</OutputPath>
-        <DefineConstants>MONO</DefineConstants>
-        <AssemblyName>BepInExConfigManager.Mono.Patcher</AssemblyName>
-        <Prefer32Bit>false</Prefer32Bit>
-        <IsCpp>false</IsCpp>
-        <PlatformTarget>x64</PlatformTarget>
-    </PropertyGroup>
-    <ItemGroup>
-        <Reference Include="System" />
-        <Reference Include="System.Core" />
-        <Reference Include="System.Xml.Linq" />
-        <Reference Include="System.Data.DataSetExtensions" />
-        <Reference Include="System.Data" />
-        <Reference Include="System.Xml" />
-    </ItemGroup>
-    <!-- Mono refs -->
-    <ItemGroup Condition="'$(IsCpp)'=='false'">
-        <Reference Include="BepInEx">
-            <HintPath>..\lib\BepInEx.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-        <Reference Include="0Harmony">
-            <HintPath>..\packages\HarmonyX.2.5.2\lib\net35\0Harmony.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-        <Reference Include="Mono.Cecil">
-            <HintPath>..\packages\Mono.Cecil.0.10.4\lib\net35\Mono.Cecil.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-    </ItemGroup>
-    <!-- Il2Cpp refs -->
-    <ItemGroup Condition="'$(IsCpp)'=='true'">
-        <Reference Include="0Harmony">
-            <HintPath>..\packages\HarmonyX.2.5.2\lib\net35\0Harmony.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-        <Reference Include="Mono.Cecil">
-            <HintPath>..\packages\Mono.Cecil.0.11.4\lib\net40\Mono.Cecil.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-        <Reference Include="BepInEx.Core">
-            <HintPath>..\lib\BepInEx.Core.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-        <Reference Include="BepInEx.Preloader.Core">
-            <HintPath>..\lib\BepInEx.Preloader.Core.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-        <Reference Include="BepInEx.IL2CPP">
-            <HintPath>..\lib\BepInEx.IL2CPP.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-    </ItemGroup>
-    <ItemGroup>
-        <Compile Include="Patcher.cs" />
-        <Compile Include="Properties\AssemblyInfo.cs" />
-    </ItemGroup>
-    <ItemGroup>
-        <None Include="app.config" />
-        <None Include="packages.config" />
-    </ItemGroup>
-    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <LangVersion>10.0</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+      <Configurations>Release_MONO;Release_IL2CPP;Release_IL2CPP_CoreCLR</Configurations>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release_Mono'">
+    <TargetFramework>net35</TargetFramework>      
+    <OutputPath>..\Release\BepInExConfigManager.Mono\patchers\</OutputPath>
+    <DefineConstants>MONO</DefineConstants>
+    <AssemblyName>BepInExConfigManager.Mono.Patcher</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release_IL2CPP'">
+      <TargetFramework>net472</TargetFramework>
+    <OutputPath>..\Release\BepInExConfigManager.Il2Cpp\patchers\</OutputPath>
+    <DefineConstants>CPP</DefineConstants>
+    <AssemblyName>BepInExConfigManager.Il2Cpp.Patcher</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release_IL2CPP_CoreCLR'">
+      <TargetFramework>net6</TargetFramework>
+    <OutputPath>..\Release\BepInExConfigManager.Il2Cpp.CoreCLR\patchers\</OutputPath>
+    <DefineConstants>CPP</DefineConstants>
+    <AssemblyName>BepInExConfigManager.Il2Cpp.Patcher</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="HarmonyX" Version="2.5.2" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Release_Mono'">
+      <PackageReference Include="Mono.Cecil" Version="0.10.4" />
+    <Reference Include="BepInEx">
+      <HintPath>..\lib\BepInEx.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' != 'Release_Mono'">
+      <PackageReference Include="Mono.Cecil" Version="0.11.4" />
+    <Reference Include="BepInEx.Core">
+      <HintPath>..\lib\BepInEx.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="BepInEx.Preloader.Core">
+      <HintPath>..\lib\BepInEx.Preloader.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="BepInEx.IL2CPP">
+      <HintPath>..\lib\BepInEx.IL2CPP.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
 </Project>

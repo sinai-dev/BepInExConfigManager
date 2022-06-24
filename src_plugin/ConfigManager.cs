@@ -10,6 +10,12 @@ using ConfigManager.UI;
 using HarmonyLib;
 using UnityEngine;
 using UniverseLib.Input;
+#if UNHOLLOWER
+using UnhollowerRuntimeLib;
+#endif
+#if INTEROP
+using Il2CppInterop.Runtime.Injection;
+#endif
 
 namespace ConfigManager
 {
@@ -24,7 +30,7 @@ namespace ConfigManager
         public const string GUID = "com.sinai.BepInExConfigManager";
         public const string NAME = "BepInExConfigManager";
         public const string AUTHOR = "Sinai";
-        public const string VERSION = "1.2.12";
+        public const string VERSION = "1.3.0";
 
         public static ConfigManager Instance { get; private set; }
 
@@ -61,7 +67,7 @@ namespace ConfigManager
         {
             Instance = this;
 
-            UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<ManagerBehaviour>();
+            ClassInjector.RegisterTypeInIl2Cpp<ManagerBehaviour>();
             GameObject obj = new("ConfigManagerBehaviour");
             GameObject.DontDestroyOnLoad(obj);
             obj.hideFlags |= HideFlags.HideAndDontSave;
@@ -80,6 +86,14 @@ namespace ConfigManager
         }
 #endif
 
+        const string IL2CPP_LIBS_PATH =
+#if UNHOLLOWER
+            "unhollowed"
+#else
+            "interop"
+#endif
+            ;
+
         public static void Init()
         {
             InitConfig();
@@ -88,7 +102,7 @@ namespace ConfigManager
             {
                 Disable_EventSystem_Override = Disable_EventSystem_Override.Value,
                 Force_Unlock_Mouse = true,
-                Unhollowed_Modules_Folder = Path.Combine(Paths.BepInExRootPath, "unhollowed")
+                Unhollowed_Modules_Folder = Path.Combine(Paths.BepInExRootPath, IL2CPP_LIBS_PATH)
             });
         }
 

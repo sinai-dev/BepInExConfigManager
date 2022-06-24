@@ -1,154 +1,201 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{51308BD5-5872-4A72-85D2-6194673C8A5E}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ConfigManager</RootNamespace>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <LangVersion>9.0</LangVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <!-- CONFIGURATIONS -->
-  <!-- IL2CPP -->
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_IL2CPP|AnyCPU' ">
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <OutputPath>..\Release\BepInExConfigManager.Il2Cpp\plugins\</OutputPath>
-    <DefineConstants>CPP</DefineConstants>
-    <AssemblyName>BepInExConfigManager.Il2Cpp</AssemblyName>
-    <IsCpp>true</IsCpp>
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <!-- MONO -->
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_Mono|AnyCPU' ">
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <OutputPath>..\Release\BepInExConfigManager.Mono\plugins\</OutputPath>
-    <DefineConstants>MONO</DefineConstants>
-    <AssemblyName>BepInExConfigManager.Mono</AssemblyName>
-    <Prefer32Bit>false</Prefer32Bit>
-    <IsCpp>false</IsCpp>
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>..\packages\HarmonyX.2.5.2\lib\net35\0Harmony.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <!-- Mono refs -->
-  <ItemGroup Condition="'$(IsCpp)'=='false'">
-    <Reference Include="BepInEx">
-      <HintPath>..\lib\BepInEx.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>..\lib\mono\UnityEngine.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>..\lib\mono\UnityEngine.UI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UniverseLib.Mono">
-      <HintPath>..\packages\UniverseLib.Mono.1.4.2\lib\net35\UniverseLib.Mono.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <!-- Il2Cpp refs -->
-  <ItemGroup Condition="'$(IsCpp)'=='true'">
-    <Reference Include="UniverseLib.IL2CPP">
-      <HintPath>..\packages\UniverseLib.IL2CPP.1.4.2\lib\net472\UniverseLib.IL2CPP.dll</HintPath>
-    </Reference>
-    <Reference Include="BepInEx.Core">
-      <HintPath>..\lib\BepInEx.Core.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="BepInEx.IL2CPP">
-      <HintPath>..\lib\BepInEx.IL2CPP.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnhollowerBaseLib">
-      <HintPath>..\lib\UnhollowerBaseLib.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Il2Cppmscorlib">
-      <HintPath>..\lib\unhollowed\Il2Cppmscorlib.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Il2CppSystem.Core">
-      <HintPath>..\lib\unhollowed\Il2CppSystem.Core.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Il2Cppmscorlib">
-      <HintPath>..\lib\unhollowed\Il2Cppmscorlib.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Il2CppSystem.Core">
-      <HintPath>..\lib\unhollowed\Il2CppSystem.Core.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\lib\unhollowed\UnityEngine.CoreModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>..\lib\unhollowed\UnityEngine.TextRenderingModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>..\lib\unhollowed\UnityEngine.UI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UIModule">
-      <HintPath>..\lib\unhollowed\UnityEngine.UIModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>..\lib\unhollowed\UnityEngine.IMGUIModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ConfigManager.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UI\CachedConfigEntry.cs" />
-    <Compile Include="UI\InteractiveValues\InteractiveBool.cs" />
-    <Compile Include="UI\InteractiveValues\InteractiveColor.cs" />
-    <Compile Include="UI\InteractiveValues\InteractiveEnum.cs" />
-    <Compile Include="UI\InteractiveValues\InteractiveFlags.cs" />
-    <Compile Include="UI\InteractiveValues\InteractiveKeycode.cs" />
-    <Compile Include="UI\InteractiveValues\InteractiveNumber.cs" />
-    <Compile Include="UI\InteractiveValues\InteractiveString.cs" />
-    <Compile Include="UI\InteractiveValues\InteractiveTomlObject.cs" />
-    <Compile Include="UI\InteractiveValues\InteractiveFloatStruct.cs" />
-    <Compile Include="UI\InteractiveValues\InteractiveValue.cs" />
-    <Compile Include="UI\UIManager.cs" />
-    <Compile Include="UI\InteractiveValues\InteractiveValueList.cs" />
-    <Compile Include="Attributes\ConfigurationManagerAttributes.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Analyzer Include="..\packages\UniverseLib.Analyzers.1.0.4\analyzers\dotnet\cs\UniverseLib.Analyzers.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\src_patcher\BepInExConfigManager.Patcher.csproj">
-      <Project>{beabe9b7-0c1c-4071-a99c-1ced983287e9}</Project>
-      <Name>BepInExConfigManager.Patcher</Name>
-      <Private>False</Private>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <RootNamespace>ConfigManager</RootNamespace>
+        <LangVersion>10.0</LangVersion>
+        <PlatformTarget>x64</PlatformTarget>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <AllowedReferenceRelatedFileExtensions></AllowedReferenceRelatedFileExtensions>
+        <Configurations>Release_MONO;Release_IL2CPP;Release_IL2CPP_CoreCLR</Configurations>
+    </PropertyGroup>
+
+    <!-- CONFIGURATIONS -->
+    <PropertyGroup Condition="'$(Configuration)' == 'Release_IL2CPP'">
+        <OutputPath>..\Release\BepInExConfigManager.Il2Cpp\plugins\</OutputPath>
+        <TargetFramework>net472</TargetFramework>
+        <DefineConstants>CPP,UNHOLLOWER</DefineConstants>
+        <AssemblyName>BepInExConfigManager.Il2Cpp</AssemblyName>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)' == 'Release_IL2CPP_CoreCLR'">
+        <OutputPath>..\Release\BepInExConfigManager.Il2Cpp.CoreCLR\plugins\</OutputPath>
+        <TargetFramework>net6</TargetFramework>
+        <DefineConstants>CPP,INTEROP</DefineConstants>
+        <AssemblyName>BepInExConfigManager.Il2Cpp.CoreCLR</AssemblyName>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)' == 'Release_Mono'">
+        <TargetFramework>net35</TargetFramework>
+        <OutputPath>..\Release\BepInExConfigManager.Mono\plugins\</OutputPath>
+        <DefineConstants>MONO</DefineConstants>
+        <AssemblyName>BepInExConfigManager.Mono</AssemblyName>
+    </PropertyGroup>
+
+    <!-- NUGET -->
+    <ItemGroup>
+        <PackageReference Include="HarmonyX" Version="2.5.2" IncludeAssets="Compile" />
+    </ItemGroup>
+    <!-- mono -->
+    <ItemGroup Condition="'$(Configuration)'=='Release_Mono'">
+        <PackageReference Include="UniverseLib.Mono" Version="1.5.1" />
+    </ItemGroup>
+    <!-- il2cpp Unhollower nuget -->
+    <ItemGroup Condition="'$(Configuration)'=='Release_IL2CPP'">
+        <PackageReference Include="Il2CppAssemblyUnhollower.BaseLib" Version="0.4.22" IncludeAssets="Compile" />
+        <PackageReference Include="UniverseLib.IL2CPP.Unhollower" Version="1.5.1" />
+    </ItemGroup>
+    <!-- il2cpp Interop nuget -->
+    <ItemGroup Condition="'$(Configuration)'=='Release_IL2CPP_CoreCLR'">
+        <PackageReference Include="Il2CppInterop.Common" Version="1.0.0" IncludeAssets="Compile" />
+        <PackageReference Include="Il2CppInterop.Runtime" Version="1.0.0" IncludeAssets="Compile" />
+        <PackageReference Include="UniverseLib.IL2CPP.Interop" Version="1.5.1" />
+    </ItemGroup>
+
+    <!-- ASSEMBLY REFS -->
+    <!-- mono -->
+    <ItemGroup Condition="'$(Configuration)' == 'Release_Mono'">
+        <Reference Include="BepInEx">
+            <HintPath>..\lib\BepInEx.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine">
+            <HintPath>..\lib\mono\UnityEngine.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.UI">
+            <HintPath>..\lib\mono\UnityEngine.UI.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
+    <!-- il2cpp -->
+    <ItemGroup Condition="'$(Configuration)'!='Release_Mono'">
+        <Reference Include="BepInEx.Core">
+            <HintPath>..\lib\BepInEx.Core.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="BepInEx.IL2CPP">
+            <HintPath>..\lib\BepInEx.IL2CPP.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
+    <!-- il2cpp unhollower -->
+    <ItemGroup Condition="'$(Configuration)' == 'Release_IL2CPP'">
+        <Reference Include="Il2Cppmscorlib">
+            <HintPath>..\lib\unhollowed\Il2Cppmscorlib.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Il2CppSystem.Core">
+            <HintPath>..\lib\unhollowed\Il2CppSystem.Core.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Il2Cppmscorlib">
+            <HintPath>..\lib\unhollowed\Il2Cppmscorlib.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Il2CppSystem.Core">
+            <HintPath>..\lib\unhollowed\Il2CppSystem.Core.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>..\lib\unhollowed\UnityEngine.CoreModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.TextRenderingModule">
+            <HintPath>..\lib\unhollowed\UnityEngine.TextRenderingModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.UI">
+            <HintPath>..\lib\unhollowed\UnityEngine.UI.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.UIModule">
+            <HintPath>..\lib\unhollowed\UnityEngine.UIModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.IMGUIModule">
+            <HintPath>..\lib\unhollowed\UnityEngine.IMGUIModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
+    <!-- il2cpp interop -->
+    <ItemGroup Condition="'$(Configuration)' == 'Release_IL2CPP_CoreCLR'">
+        <Reference Include="Il2Cppmscorlib">
+            <HintPath>..\lib\interop\Il2Cppmscorlib.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Il2CppSystem.Core">
+            <HintPath>..\lib\interop\Il2CppSystem.Core.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Il2Cppmscorlib">
+            <HintPath>..\lib\interop\Il2Cppmscorlib.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Il2CppSystem.Core">
+            <HintPath>..\lib\interop\Il2CppSystem.Core.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>..\lib\interop\UnityEngine.CoreModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.TextRenderingModule">
+            <HintPath>..\lib\interop\UnityEngine.TextRenderingModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.UI">
+            <HintPath>..\lib\interop\UnityEngine.UI.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.UIModule">
+            <HintPath>..\lib\interop\UnityEngine.UIModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.IMGUIModule">
+            <HintPath>..\lib\interop\UnityEngine.IMGUIModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
+    <!-- ANALYZERS -->
+    <ItemGroup>
+        <Analyzer Include="..\packages\UniverseLib.Analyzers.1.0.4\analyzers\dotnet\cs\UniverseLib.Analyzers.dll" />
+    </ItemGroup>
+    <!-- PROJECT REFERENCES -->
+    <ItemGroup>
+        <ProjectReference Include="..\src_patcher\BepInExConfigManager.Patcher.csproj">
+            <IncludeAssets>compile</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </ProjectReference>
+    </ItemGroup>
+    <Target Name="DeleteFileCoreCLR" AfterTargets="Build" Condition="'$(Configuration)' == 'Release_IL2CPP_CoreCLR'">
+        <Delete Files="$(TargetDir)BepInExConfigManager.Il2Cpp.Patcher.dll" /> 
+        <Delete Files="$(TargetDir)BepInExConfigManager.Il2Cpp.Patcher.dll.config" /> 
+        <Delete Files="$(TargetDir)BepInExConfigManager.Il2Cpp.Patcher.pdb" /> 
+        <Delete Files="$(TargetDir)BepInExConfigManager.Il2Cpp.CoreCLR.deps.json" /> 
+        <Delete Files="$(TargetDir)BepInExConfigManager.Il2Cpp.CoreCLR.pdb" />
+        <Delete Files="$(TargetDir)/../patchers/BepInExConfigManager.Il2Cpp.Patcher.deps.json" />
+        <Delete Files="$(TargetDir)/../patchers/BepInExConfigManager.Il2Cpp.Patcher.dll.config" />
+        <Delete Files="$(TargetDir)/../patchers/BepInExConfigManager.Il2Cpp.Patcher.pdb" />
+    </Target>
+    <Target Name="DeleteFileIl2Cpp" AfterTargets="Build" Condition="'$(Configuration)' == 'Release_IL2CPP'">
+        <Delete Files="$(TargetDir)BepInExConfigManager.Il2Cpp.Patcher.dll" />
+        <Delete Files="$(TargetDir)BepInExConfigManager.Il2Cpp.Patcher.dll.config" />
+        <Delete Files="$(TargetDir)BepInExConfigManager.Il2Cpp.Patcher.pdb" />
+        <Delete Files="$(TargetDir)BepInExConfigManager.Il2Cpp.deps.json" />
+        <Delete Files="$(TargetDir)BepInExConfigManager.Il2Cpp.pdb" />
+        <Delete Files="$(TargetDir)/../patchers/BepInExConfigManager.Il2Cpp.Patcher.deps.json" />
+        <Delete Files="$(TargetDir)/../patchers/BepInExConfigManager.Il2Cpp.Patcher.dll.config" />
+        <Delete Files="$(TargetDir)/../patchers/BepInExConfigManager.Il2Cpp.Patcher.pdb" />
+    </Target>
+    <Target Name="DeleteFileMono" AfterTargets="Build" Condition="'$(Configuration)' == 'Release_Mono'">
+        <Delete Files="$(TargetDir)BepInExConfigManager.Mono.Patcher.dll" />
+        <Delete Files="$(TargetDir)BepInExConfigManager.Mono.Patcher.dll.config" />
+        <Delete Files="$(TargetDir)BepInExConfigManager.Mono.Patcher.pdb" />
+        <Delete Files="$(TargetDir)BepInExConfigManager.Mono.deps.json" />
+        <Delete Files="$(TargetDir)BepInExConfigManager.Mono.pdb" />
+        <Delete Files="$(TargetDir)/../patchers/BepInExConfigManager.Mono.Patcher.deps.json" />
+        <Delete Files="$(TargetDir)/../patchers/BepInExConfigManager.Mono.Patcher.dll.config" />
+        <Delete Files="$(TargetDir)/../patchers/BepInExConfigManager.Mono.Patcher.pdb" />
+    </Target>
 </Project>
