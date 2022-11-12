@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -32,20 +33,20 @@ namespace ConfigManager.UI.InteractiveValues
         {
             if (this.Value is Color32 c32)
             {
-                inputs[0].text = c32.r.ToString();
-                inputs[1].text = c32.g.ToString();
-                inputs[2].text = c32.b.ToString();
-                inputs[3].text = c32.a.ToString();
+                inputs[0].text = c32.r.ToString(CultureInfo.InvariantCulture);
+                inputs[1].text = c32.g.ToString(CultureInfo.InvariantCulture);
+                inputs[2].text = c32.b.ToString(CultureInfo.InvariantCulture);
+                inputs[3].text = c32.a.ToString(CultureInfo.InvariantCulture);
 
                 if (colorImage)
                     colorImage.color = c32;
             }
             else if (this.Value is Color color)
             {
-                inputs[0].text = color.r.ToString();
-                inputs[1].text = color.g.ToString();
-                inputs[2].text = color.b.ToString();
-                inputs[3].text = color.a.ToString();
+                inputs[0].text = color.r.ToString(CultureInfo.InvariantCulture);
+                inputs[1].text = color.g.ToString(CultureInfo.InvariantCulture);
+                inputs[2].text = color.b.ToString(CultureInfo.InvariantCulture);
+                inputs[3].text = color.a.ToString(CultureInfo.InvariantCulture);
 
                 if (colorImage)
                     colorImage.color = color;
@@ -110,13 +111,13 @@ namespace ConfigManager.UI.InteractiveValues
             {
                 if (Value is Color)
                 {
-                    float val = float.Parse(value);
+                    float val = float.Parse(value, CultureInfo.InvariantCulture);
                     SetValueToColor(val);
                     sliders[index].value = val;
                 }
                 else
                 {
-                    byte val = byte.Parse(value);
+                    byte val = byte.Parse(value, CultureInfo.InvariantCulture);
                     SetValueToColor32(val);
                     sliders[index].value = val;
                 }
@@ -150,9 +151,9 @@ namespace ConfigManager.UI.InteractiveValues
                     }
                     else
                     {
-                        inputField.Text = value.ToString();
+                        inputField.Text = value.ToString(CultureInfo.InvariantCulture);
                         SetValueToColor(value);
-                        inputs[index].text = value.ToString();
+                        inputs[index].text = value.ToString(CultureInfo.InvariantCulture);
                     }
                 }
                 catch (Exception ex)

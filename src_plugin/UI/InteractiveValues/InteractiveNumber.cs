@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Reflection;
@@ -19,8 +20,11 @@ namespace ConfigManager.UI.InteractiveValues
         internal InputFieldRef valueInput;
         private Slider slider;
 
-        public MethodInfo ParseMethod => parseMethod ??= Value.GetType().GetMethod("Parse", new Type[] { typeof(string) });
-        private MethodInfo parseMethod;
+		public MethodInfo ParseMethod => parseMethod ??= Value.GetType().GetMethod("Parse", new Type[] { typeof(string), typeof(CultureInfo) });
+		private MethodInfo parseMethod;
+
+		public MethodInfo ToStringMethod => toStringMethod ??= Value.GetType().GetMethod("ToString", new Type[] { typeof(IFormatProvider) });
+		private MethodInfo toStringMethod;
 
         public InteractiveNumber(object value, Type valueType) : base(value, valueType) { }
 
@@ -29,20 +33,20 @@ namespace ConfigManager.UI.InteractiveValues
 
         public override void RefreshUIForValue()
         {
-            valueInput.Text = Value.ToString();
+            valueInput.Text = (string)ToStringMethod.Invoke(Value, new object[] { CultureInfo.InvariantCulture });
 
             if (!valueInput.Component.gameObject.activeSelf)
                 valueInput.Component.gameObject.SetActive(true);
 
             if (slider)
-                slider.value = (float)Convert.ChangeType(Value, typeof(float));
+                slider.value = (float)Convert.ChangeType(Value, typeof(float), CultureInfo.InvariantCulture);
         }
 
         internal void SetValueFromInput()
         {
             try
             {
-                Value = ParseMethod.Invoke(null, new object[] { valueInput.Text });
+                Value = ParseMethod.Invoke(null, new object[] { valueInput.Text, CultureInfo.InvariantCulture });
                 
                 if (Owner.RefConfig.Description?.AcceptableValues is AcceptableValueBase acceptable
                     && !acceptable.IsValid(Value))
@@ -84,30 +88,33 @@ namespace ConfigManager.UI.InteractiveValues
                 Type gtype = typeof(AcceptableValueRange<>).MakeGenericType(range.ValueType);
                 object minValue = AccessTools.Property(gtype, "MinValue").GetValue(range, null);
                 object maxValue = AccessTools.Property(gtype, "MaxValue").GetValue(range, null);
+				string minValueStr = (string)ToStringMethod.Invoke(minValue, new object[] { CultureInfo.InvariantCulture });
+				string maxValueStr = (string)ToStringMethod.Invoke(maxValue, new object[] { CultureInfo.InvariantCulture });
 
-                Owner.mainLabel.text += $" <color=grey><i>[{minValue.ToString()} - {maxValue.ToString()}]</i></color>";
+
+				Owner.mainLabel.text += $" <color=grey><i>[{minValueStr} - {maxValueStr}]</i></color>";
 
                 GameObject sliderObj = UIFactory.CreateSlider(mainContent, "ValueSlider", out slider);
                 UIFactory.SetLayoutElement(sliderObj, minWidth: 250, minHeight: 25);
 
-                slider.minValue = (float)Convert.ChangeType(minValue, typeof(float));
-                slider.maxValue = (float)Convert.ChangeType(maxValue, typeof(float));
+                slider.minValue = (float)Convert.ChangeType(minValue, typeof(float), CultureInfo.InvariantCulture);
+                slider.maxValue = (float)Convert.ChangeType(maxValue, typeof(float), CultureInfo.InvariantCulture);
 
-                slider.value = (float)Convert.ChangeType(Value, typeof(float));
+                slider.value = (float)Convert.ChangeType(Value, typeof(float), CultureInfo.InvariantCulture);
 
                 slider.onValueChanged.AddListener((float val) =>
                 {
-                    Value = Convert.ChangeType(val, FallbackType);
+                    Value = Convert.ChangeType(val, FallbackType, CultureInfo.InvariantCulture);
                     Owner.SetValueFromIValue();
                     valueInput.Text = Value.ToString();
                 });
 
-                //m_valueInput.onValueChanged.AddListener((string val) => 
-                //{
-                //    SetValueFromInput
-                //    //slider.value = (float)Convert.ChangeType(Value, typeof(float));
-                //});
-            }
-        }
+				//m_valueInput.onValueChanged.AddListener((string val) => 
+				//{
+				//    SetValueFromInput
+				//    //slider.value = (float)Convert.ChangeType(Value, typeof(float), CultureInfo.InvariantCulture);
+				//});
+			}
+		}
     }
 }
