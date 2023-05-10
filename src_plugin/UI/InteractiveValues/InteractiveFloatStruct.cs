@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -48,7 +49,7 @@ namespace ConfigManager.UI.InteractiveValues
                     {
                         FieldInfo field = fields[i];
                         float val = (float)field.GetValue(instance);
-                        inputs[i].text = val.ToString();
+                        inputs[i].text = val.ToString(CultureInfo.InvariantCulture);
                     }
                 }
                 catch (Exception ex)
@@ -167,7 +168,7 @@ namespace ConfigManager.UI.InteractiveValues
                 {
                     try
                     {
-                        float f = float.Parse(val);
+                        float f = float.Parse(val, CultureInfo.InvariantCulture);
                         Value = structInfo.SetValue(ref this.Value, index, f);
                         Owner.SetValueFromIValue();
                     }
